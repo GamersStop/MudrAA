@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Noto+Sans+Devanagari:wght@400;600;700;900&family=Outfit:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-outfit: 'Outfit', sans-serif;
+  --font-jakarta: 'Plus Jakarta Sans', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+  --font-cinzel: 'Cinzel', serif;
+  --font-playfair: 'Playfair Display', serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-devanagari: 'Noto Sans Devanagari', serif;
+
+  --color-mudraa-obsidian: #06070A;
+  --color-mudraa-dark: #0A0C14;
+  --color-mudraa-card: #101322;
+  --color-mudraa-purple: #9945FF;
+  --color-mudraa-cyan: #00F2FE;
+  --color-mudraa-green: #14F195;
+  --color-mudraa-gold: #F59E0B;
+  --color-mudraa-gold-light: #FCD34D;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+body {
+  background-color: #06070A;
+  color: #F8FAFC;
+  font-family: var(--font-jakarta);
+  overflow-x: hidden;
+}
+
+/* Ashtakona 8-sided Sovereign Polygon Clip */
+.ashtakona-shape, .clip-octagon {
+  clip-path: polygon(29.29% 0%, 70.71% 0%, 100% 29.29%, 100% 70.71%, 70.71% 100%, 29.29% 100%, 0% 70.71%, 0% 29.29%);
+}
+
+/* Cybernetic PCB grid backdrop */
+.pcb-grid-bg {
+  background-color: #06070A;
+  background-image: 
+    radial-gradient(circle at 50% 18%, rgba(153, 69, 255, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 82% 28%, rgba(0, 242, 254, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 15% 45%, rgba(245, 158, 11, 0.07) 0%, transparent 40%),
+    linear-gradient(rgba(0, 242, 254, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 242, 254, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 64px 64px, 64px 64px;
+}
+
+/* Radial gold halo illumination */
+.gold-solar-halo {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.28) 0%, rgba(252, 211, 77, 0.12) 38%, rgba(153, 69, 255, 0.05) 60%, transparent 75%);
+}
+
+/* Subtle rotational animation */
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes reverseSpin {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+.animate-spin-slow {
+  animation: spinSlow 50s linear infinite;
+}
+.animate-spin-reverse {
+  animation: reverseSpin 75s linear infinite;
+}
+
+/* Text selection */
+::selection {
+  background-color: #9945FF;
+  color: #FFFFFF;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #06070A;
+}
+::-webkit-scrollbar-thumb {
+  background: #1C233D;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2D375E;
+}
+
+/* Custom focus ring */
+:focus-visible {
+  outline: 2px solid #00F2FE;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Ashtakona (Octagon) Clip-path */
+.clip-octagon {
+  clip-path: polygon(29.29% 0%, 70.71% 0%, 100% 29.29%, 100% 70.71%, 70.71% 100%, 29.29% 100%, 0% 70.71%, 0% 29.29%);
+}
+
+/* Premium Glassmorphism */
+.glass-panel-premium {
+  background: rgba(13, 16, 28, 0.72);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.glass-card-premium {
+  background: rgba(14, 18, 32, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-premium:hover {
+  border-color: rgba(0, 242, 254, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6), 0 0 28px rgba(0, 242, 254, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.glass-pill {
+  background: rgba(16, 20, 36, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+
+/* High-contrast accent text — weight-first approach */
+.text-accent-cyan {
+  color: #00F2FE;
+}
+
+.text-accent-purple {
+  color: #B46EFF;
+}
+
+.text-accent-gold {
+  color: #FCD34D;
+}
+
+/* Cybernetic Dot Grid Background */
+.bg-cyber-dots {
+  background-size: 36px 36px;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+}
+
+/* Horizontal grid lines — a subtler alternative */
+.bg-grid-lines {
+  background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 100% 72px;
+}
+
+/* Ambient Radial Glows */
+.ambient-glow-purple {
+  background: radial-gradient(circle, rgba(153, 69, 255, 0.14) 0%, rgba(153, 69, 255, 0) 70%);
+}
+
+.ambient-glow-cyan {
+  background: radial-gradient(circle, rgba(0, 242, 254, 0.11) 0%, rgba(0, 242, 254, 0) 70%);
+}
+
+.ambient-glow-solana {
+  background: radial-gradient(ellipse at center, rgba(153, 69, 255, 0.13) 0%, rgba(20, 241, 149, 0.07) 50%, transparent 80%);
+}
+
+/* Solid colored underline for heading emphasis — not gradient text */
+.heading-underline-cyan {
+  text-decoration: underline;
+  text-decoration-color: #00F2FE;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
+}
+
+/* Button shimmer effect */
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s ease-in-out infinite;
+  border-radius: inherit;
+}
+
+/* Section divider */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
+}
+
+/* Monospace data styling — intentional data context only */
+.data-mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+/* Live pulse dot */
+.live-dot::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #14F195;
+  margin-right: 6px;
+  box-shadow: 0 0 0 0 rgba(20, 241, 149, 0.5);
+  animation: live-ping 1.8s ease-out infinite;
+}
+
+@keyframes live-ping {
+  0% { box-shadow: 0 0 0 0 rgba(20, 241, 149, 0.5); }
+  70% { box-shadow: 0 0 0 6px rgba(20, 241, 149, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(20, 241, 149, 0); }
+}
