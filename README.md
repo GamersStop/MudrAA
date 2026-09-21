@@ -49,5 +49,22 @@ MudrAA coordinates its execution, security, and capital lifecycle across eight s
 ---
 
 ## 📜 Development Status
-The complete codebase, reproduction test suites, and deployment runbooks
-will be made public here at the conclusion of the judging entry period.
+
+### 🎬 Week 1 Progress — Sovereign Landing Page & Verification Architecture
+Interactive Next.js institutional portal implementing the Ashta Pradhan governance architecture, real-time Solana L1 telemetry, and the Rajmudra verification engine.
+
+<div align="center">
+  <a href="https://www.youtube.com/watch?v=VL-e-i2593Q" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.youtube.com/vi/VL-e-i2593Q/maxresdefault.jpg" alt="MudrAA Week 1 Progress Demonstration" width="100%" />
+  </a>
+  <br />
+  <p>
+    <a href="https://www.youtube.com/watch?v=VL-e-i2593Q">
+      <b>▶️ Watch the MudrAA Week 1 Progress Demo on YouTube</b>
+    </a>
+  </p>
+</div>
+
+<br />
+
+The complete codebase, reproduction test suites, and deployment runbooks will be made public here at the conclusion of the judging entry period.
