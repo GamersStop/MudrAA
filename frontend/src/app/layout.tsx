@@ -45,6 +45,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { Providers } from "@/components/providers/Providers";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -53,7 +55,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="min-h-screen bg-mudraa-obsidian text-slate-100 antialiased selection:bg-mudraa-purple selection:text-white">
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

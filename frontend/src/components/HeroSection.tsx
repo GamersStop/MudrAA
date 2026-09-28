@@ -1,212 +1,347 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
-import {
-  ArrowRight,
-  FileText,
-  ShieldCheck,
-  Lock,
-  Zap,
-  Sparkles,
-  Info,
-} from "lucide-react";
+import Image from "next/image";
+import { useWallet } from "@/context/WalletContext";
+import { ArrowRight, BookOpen, CheckCircle2, Search } from "lucide-react";
+import { RajmudraSeal } from "@/components/RajmudraSeal";
+
+const OrbitalNode: React.FC<{
+  label: string;
+  angle: number;
+  radius: number;
+  color: string;
+  active: boolean;
+  onClick: () => void;
+}> = ({ label, angle, radius, color, active, onClick }) => {
+  const rad = ((angle - 90) * Math.PI) / 180;
+  const cx = Math.round((50 + radius * Math.cos(rad)) * 10) / 10;
+  const cy = Math.round((50 + radius * Math.sin(rad)) * 10) / 10;
+  return (
+    <button
+      onClick={onClick}
+      className="absolute text-[8px] font-mono px-1.5 py-0.5 rounded border transition-all duration-200 cursor-pointer whitespace-nowrap"
+      style={{
+        left: `${cx}%`,
+        top: `${cy}%`,
+        transform: "translate(-50%, -50%)",
+        color: active ? color : "rgba(142,157,177,0.8)",
+        borderColor: active ? color + "55" : "rgba(30,50,80,0.6)",
+        background: active ? color + "12" : "rgba(5,9,18,0.85)",
+        boxShadow: active ? `0 0 10px ${color}25` : "none",
+      }}
+    >
+      {label}
+    </button>
+  );
+};
 
 export const HeroSection: React.FC = () => {
-  const [activePillar, setActivePillar] = useState<string>("SACHIV");
+  const { launchApp } = useWallet();
+  const [activeNode, setActiveNode] = useState<string>("Strategy");
 
-  const nodes = [
-    { id: "PESHAWA", label: "PESHAWA", title: "Executive Dispatcher", color: "#00F2FE", pos: "top-2 left-1/2 -translate-x-1/2", desc: "High-throughput Anchor instruction orchestration & atomic dispatch." },
-    { id: "AMATYA", label: "AMATYA", title: "Treasury & Risk Vaults", color: "#F59E0B", pos: "right-0 top-1/4", desc: "Multi-tranche liquidity architecture and dynamic yield balancing." },
-    { id: "SACHIV", label: "SACHIV", title: "Sovereign Commitment Seal", color: "#14F195", pos: "right-2 top-1/2", desc: "Rajmudra ZK-verification engine generating mathematical state proofs." },
-    { id: "SUMANT", label: "SUMANT", title: "External Trade Gateway", color: "#9945FF", pos: "right-2 bottom-1/4", desc: "Peppol BIS 3.0 e-invoice & maritime IoT logistics ingestion." },
-    { id: "SENAPATI", label: "SENAPATI", title: "Anti-Fraud Citadel", color: "#F59E0B", pos: "bottom-2 left-1/2 -translate-x-1/2", desc: "Deterministic runtime replay defense preventing duplicate pledges." },
-    { id: "NYAYADHISH", label: "NYAYADHISH", title: "Legal Recourse Engine", color: "#00F2FE", pos: "left-2 bottom-1/4", desc: "Digital negotiable instrument perfection under UNCITRAL MLETR." },
-    { id: "PANDITRAO", label: "PANDITRAO", title: "Compliance Guardian", color: "#FCD34D", pos: "left-0 top-1/2", desc: "Scoped zero-knowledge viewing keys for institutional regulatory audit." },
-    { id: "WAKNAVIS", label: "WAKNAVIS", title: "Shielded Intelligence", color: "#9945FF", pos: "left-2 top-1/4", desc: "Confidential SPL Token-2022 extension rails for enterprise privacy." },
+  const orbitalNodes = [
+    { label: "Strategy", angle: 0, color: "#F6B72C" },
+    { label: "Technology", angle: 45, color: "#18D8E8" },
+    { label: "Liquidity", angle: 90, color: "#F6B72C" },
+    { label: "Ecosystem", angle: 135, color: "#9A65FF" },
+    { label: "Community", angle: 180, color: "#27E7A3" },
+    { label: "Treasury", angle: 225, color: "#FFD35A" },
+    { label: "Operations", angle: 270, color: "#18D8E8" },
+    { label: "Risk & Compliance", angle: 315, color: "#F6B72C" },
   ];
 
-  const currentPillar = nodes.find((n) => n.id === activePillar) || nodes[2];
-
   return (
-    <section className="relative min-h-[calc(100vh-5rem)] flex flex-col justify-center px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto overflow-hidden pt-28 sm:pt-32 pb-16">
-      {/* Circuit & Solar Aura Background Overlays */}
-      <div className="absolute top-1/2 right-10 -translate-y-1/2 w-[500px] sm:w-[650px] h-[500px] sm:h-[650px] gold-solar-halo pointer-events-none -z-10 blur-3xl opacity-75" />
-      <div className="absolute top-10 left-10 w-80 sm:w-96 h-80 sm:h-96 bg-[#9945FF]/12 rounded-full blur-3xl pointer-events-none -z-10" />
-      <div className="absolute bottom-10 left-1/3 w-72 h-72 bg-[#00F2FE]/10 rounded-full blur-3xl pointer-events-none -z-10" />
+    <section
+      id="hero"
+      className="relative pt-28 pb-16 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto overflow-hidden"
+    >
+      {/* Ambient background glows */}
+      <div className="absolute top-0 left-1/4 w-[600px] h-[500px] bg-[#F6B72C]/7 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute top-1/4 right-0 w-[500px] h-[400px] bg-[#18D8E8]/5 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#9A65FF]/5 rounded-full blur-[130px] pointer-events-none" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-        {/* Left Column: Copy & CTAs */}
-        <div className="lg:col-span-7 flex flex-col items-start gap-6 z-10">
-          {/* Sovereign Pulse Pill */}
-          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#111318]/90 border border-[#00F2FE]/30 text-[#00F2FE] font-mono text-xs shadow-[0_0_20px_rgba(0,242,254,0.15)] flex-wrap">
-            <span className="inline-block w-2 h-2 rounded-full bg-[#00F2FE] animate-pulse" />
-            <span className="tracking-wide font-medium">SOVEREIGN L1 TRADE LIQUIDITY PROTOCOL</span>
-            <span className="text-slate-600 hidden sm:inline">|</span>
-            <div className="flex items-center gap-1.5 text-[#14F195] font-mono text-[11px]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#14F195]" />
-              <span>SOLANA PROOF-OF-HISTORY</span>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-center relative z-10">
+
+        {/* ── LEFT: Hero Copy ── */}
+        <div className="lg:col-span-5 space-y-6 text-left">
+          {/* Eyebrow pill */}
+          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08]">
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ background: "linear-gradient(to right, #9A65FF, #27E7A3)" }}
+            />
+            <span className="font-mono text-[10px] tracking-[0.18em] text-[#8E9DB1] uppercase">
+              SOVEREIGN TRADE LIQUIDITY · SOLANA
+            </span>
           </div>
 
-          {/* Sanskrit Sovereign Epigraph */}
-          <div className="border-l-2 border-[#F59E0B]/60 pl-4 py-1">
-            <p className="font-devanagari text-[#FCD34D] text-sm sm:text-base tracking-wide font-medium">
-              ॥ प्रतिपच्चंद्रलेखेव वर्धिष्णुर्विश्ववंदिता शाहसूनोः शिवस्यैषा मुद्रा भद्राय राजते ॥
-            </p>
-            <p className="font-mono text-[10px] text-slate-400 uppercase tracking-widest mt-1">
-              The Royal Seal of Sovereign Trade Integrity — Re-engineered in Rust &amp; ZK-Circuits
-            </p>
-          </div>
-
-          {/* Main Regal Headline */}
-          <h1 className="font-headline text-4xl sm:text-6xl lg:text-[68px] leading-[1.08] font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#FCD34D] via-[#F59E0B] to-slate-100 tracking-tight">
-            Reign Over Your Digital Assets
+          {/* Main headline */}
+          <h1 className="font-headline text-4xl sm:text-5xl lg:text-[52px] xl:text-[56px] leading-[1.1] font-semibold text-[#E7EDF5] tracking-tight">
+            Sovereign infrastructure{" "}
+            <br className="hidden sm:block" />
+            for{" "}
+            <span
+              style={{
+                background: "linear-gradient(135deg, #F6B72C, #FFD35A)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              verified trade.
+            </span>
           </h1>
 
           {/* Subtitle */}
-          <p className="font-body text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl font-light">
-            Fusing Chhatrapati Shivaji Maharaj’s Ashta Pradhan governance with Solana cryptographic cybernetics. 
-            Eliminating duplicate-pledge trade fraud via the zero-knowledge{" "}
-            <span className="text-[#F59E0B] font-medium">Rajmudra Verification Engine</span> and SPL Token-2022 confidential liquidity channels.
+          <p className="font-body text-[#8E9DB1] text-base leading-relaxed font-light max-w-lg">
+            Eliminating duplicate-pledge risk, enforcing physical provenance, and
+            enabling confidential settlement on Solana.
           </p>
 
-          {/* Dual CTAs */}
-          <div className="flex flex-wrap items-center gap-4 pt-2 w-full sm:w-auto">
-            <Link
-              href="/vaults"
-              className="inline-flex items-center justify-center gap-3 px-7 py-3.5 bg-gradient-to-r from-[#F59E0B] via-[#FCD34D] to-[#F59E0B] text-[#06070A] font-body font-bold text-sm tracking-wide rounded hover:brightness-110 shadow-[0_0_30px_rgba(245,158,11,0.4)] transition-all active:scale-95 group cursor-pointer w-full sm:w-auto"
+          {/* CTA Buttons */}
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <button
+              onClick={() => launchApp("/dashboard")}
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg font-body font-bold text-sm text-[#050912] transition-all active:scale-95 cursor-pointer relative overflow-hidden"
+              style={{
+                background: "linear-gradient(135deg, #F6B72C 0%, #FFD35A 50%, #F6B72C 100%)",
+                boxShadow: "0 0 28px rgba(246,183,44,0.35)",
+              }}
             >
-              <span>Enter the Vaults</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-
+              <span className="relative z-10">Explore the Protocol</span>
+              <ArrowRight className="w-4 h-4 relative z-10" />
+            </button>
             <a
-              href="#institutions"
-              className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-[#111318]/90 border border-[#F59E0B]/30 hover:border-[#F59E0B]/70 text-slate-200 hover:text-[#FCD34D] font-body font-semibold text-sm rounded backdrop-blur-md transition-all duration-200 active:scale-95 cursor-pointer w-full sm:w-auto"
+              href="#architecture"
+              className="inline-flex items-center gap-2 px-5 py-3.5 rounded-lg border border-[#1E3250] bg-[#07121E]/60 hover:bg-[#07121E] hover:border-[#2A4060] text-[#8E9DB1] hover:text-[#E7EDF5] font-body text-sm transition-all cursor-pointer"
             >
-              <FileText className="w-4 h-4 text-[#F59E0B]" />
-              <span>Whitepaper &amp; Circuit Specs</span>
+              <BookOpen className="w-4 h-4 text-[#F6B72C]" />
+              <span>Read the Architecture</span>
             </a>
           </div>
 
-          {/* Security Badges Mini Strip */}
-          <div className="flex flex-wrap items-center gap-5 sm:gap-6 pt-3 text-slate-400 font-mono text-xs">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-[#14F195]" />
-              <span>Dual Formal Audits</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Lock className="w-4 h-4 text-[#00F2FE]" />
-              <span>MLETR Digital Perfection</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-[#9945FF]" />
-              <span>0% Fraud Rehypothecation</span>
-            </div>
+          {/* Trust badges */}
+          <div className="flex flex-wrap items-center gap-2.5 pt-1">
+            {[
+              { label: "ZK VERIFIED",  color: "#18D8E8", bg: "rgba(24,216,232,0.08)",  border: "rgba(24,216,232,0.25)" },
+              { label: "PROVENANCE",   color: "#27E7A3", bg: "rgba(39,231,163,0.08)",  border: "rgba(39,231,163,0.25)" },
+              { label: "CONFIDENTIAL", color: "#9A65FF", bg: "rgba(154,101,255,0.08)", border: "rgba(154,101,255,0.25)" },
+            ].map((t) => (
+              <span
+                key={t.label}
+                className="inline-flex items-center gap-1.5 font-mono text-[9px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full"
+                style={{ color: t.color, background: t.bg, border: `1px solid ${t.border}` }}
+              >
+                <CheckCircle2 className="w-2.5 h-2.5" />
+                {t.label}
+              </span>
+            ))}
           </div>
         </div>
 
-        {/* Right Column: Ashtakona Sovereign Medallion & Cybernetic Orbit */}
-        <div className="lg:col-span-5 flex flex-col items-center justify-center relative select-none mt-6 lg:mt-0">
-          {/* Outer Concentric Orbit Rings & Interactive Nodes */}
-          <div className="relative w-[320px] h-[320px] sm:w-[420px] sm:h-[420px] flex items-center justify-center">
-            {/* Radiating Circuit Trace SVG */}
-            <svg
-              className="absolute inset-0 w-full h-full animate-spin-reverse opacity-45 pointer-events-none"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 500 500"
-            >
-              <circle cx="250" cy="250" r="230" stroke="#9945FF" strokeDasharray="4 8" strokeWidth="1" />
-              <circle cx="250" cy="250" r="190" stroke="#00F2FE" strokeOpacity="0.3" strokeWidth="1" />
-              <circle cx="250" cy="250" r="150" stroke="#F59E0B" strokeDasharray="12 12" strokeWidth="1" />
-              <path d="M250 20 L250 60 M250 440 L250 480 M20 250 L60 250 M440 250 L480 250" stroke="#00F2FE" strokeWidth="1.5" />
-              <path d="M87 87 L115 115 M385 385 L413 413 M87 413 L115 385 M385 115 L413 87" stroke="#F59E0B" strokeWidth="1" />
-              <circle cx="250" cy="20" fill="#00F2FE" r="4" />
-              <circle cx="480" cy="250" fill="#9945FF" r="4" />
-              <circle cx="20" cy="250" fill="#14F195" r="4" />
-              <circle cx="250" cy="480" fill="#F59E0B" r="4" />
-            </svg>
+        {/* ── RIGHT: Trade Verification Console ── */}
+        <div className="lg:col-span-7">
+          <div
+            className="rounded-2xl bg-[#07121E]/95 overflow-hidden"
+            style={{
+              border: "1px solid rgba(30,50,80,0.9)",
+              boxShadow: "0 24px 80px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.05)",
+            }}
+          >
+            {/* Console top bar */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-[#1E3250]/80 bg-[#050912]/50">
+              <div className="flex items-center gap-2.5">
+                <div className="relative w-5 h-5 shrink-0 flex items-center justify-center">
+                  <Image
+                    src="/assets/mudraa_logo_seal.png"
+                    alt="MudrAA"
+                    fill
+                    className="object-contain drop-shadow-[0_1px_4px_rgba(246,183,44,0.4)]"
+                  />
+                </div>
+                <span className="font-headline font-bold text-[#E7EDF5] text-[11px] tracking-wider">
+                  MudrAA
+                </span>
+                <span className="font-mono text-[9px] text-[#4A607C]">/</span>
+                <span className="font-mono text-[9px] text-[#18D8E8]">trade.verify</span>
+              </div>
 
-            {/* 8 Floating Interactive Pillar Badges */}
-            <div className="absolute inset-0 z-20">
-              {nodes.map((node) => {
-                const isSelected = activePillar === node.id;
-                return (
-                  <button
-                    key={node.id}
-                    onClick={() => setActivePillar(node.id)}
-                    className={`absolute ${node.pos} font-mono text-[9px] px-2 py-0.5 rounded transition-all duration-200 cursor-pointer shadow-lg ${
-                      isSelected
-                        ? "bg-[#161B30] border-2 scale-110 shadow-[0_0_15px_rgba(245,158,11,0.5)] z-30"
-                        : "bg-[#111318]/90 border border-slate-700/60 hover:scale-105"
-                    }`}
-                    style={{
-                      borderColor: isSelected ? node.color : undefined,
-                      color: node.color,
-                    }}
-                    title={`Inspect ${node.title}`}
-                  >
-                    {node.label}
-                  </button>
-                );
-              })}
-            </div>
+              <div className="flex-1 max-w-[200px] mx-4 hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#050912]/80 border border-[#1E3250] text-[10px] font-mono text-[#4A607C]">
+                <Search className="w-3 h-3 text-[#2A4060]" />
+                <span className="truncate">Search trade, asset, or transaction...</span>
+              </div>
 
-            {/* Outer Ashtakona Radiant Halo */}
-            <div className="w-64 h-64 sm:w-80 sm:h-80 bg-gradient-to-tr from-[#F59E0B]/40 via-[#9945FF]/30 to-[#00F2FE]/40 ashtakona-shape p-1 flex items-center justify-center shadow-[0_0_70px_rgba(245,158,11,0.35)]">
-              {/* Middle Ashtakona Dark Void Layer */}
-              <div className="w-full h-full bg-[#06070A] ashtakona-shape p-2 flex items-center justify-center">
-                <div className="w-full h-full bg-gradient-to-br from-[#111318] via-[#06070A] to-[#111318] border border-[#F59E0B]/40 ashtakona-shape flex flex-col items-center justify-center p-5 text-center relative overflow-hidden">
-                  {/* Internal Gold Guilloche pattern */}
-                  <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#F59E0B_1px,transparent_1px)] [background-size:12px_12px]" />
-
-                  {/* Inner Golden Core */}
-                  <div className="relative z-10 flex flex-col items-center">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#F59E0B]/10 border border-[#F59E0B] ashtakona-shape flex items-center justify-center mb-2 shadow-[inset_0_0_20px_rgba(245,158,11,0.6)]">
-                      <span className="font-devanagari text-xl sm:text-2xl font-black text-[#FCD34D] drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]">
-                        ॥ मुद्रा ॥
-                      </span>
-                    </div>
-
-                    <span className="font-headline text-base sm:text-lg font-bold tracking-[0.25em] text-[#FCD34D] uppercase">
-                      M U D R A A
-                    </span>
-                    <span className="font-mono text-[8px] sm:text-[9px] tracking-[0.25em] text-[#00F2FE] uppercase mt-0.5">
-                      SOVEREIGN LIQUIDITY
-                    </span>
-
-                    <div className="h-px w-20 sm:w-24 bg-gradient-to-r from-transparent via-[#F59E0B] to-transparent my-2" />
-
-                    {/* Hash & Verifier Telemetry */}
-                    <span className="font-mono text-[8px] text-slate-400">
-                      SEC-P256K1 // SHA-256
-                    </span>
-                    <span className="font-mono text-[8px] text-[#14F195] tracking-tight mt-0.5">
-                      RAJMUDRA-ZK-ENGINE v3.4.12
-                    </span>
-                  </div>
-
-                  {/* Corner Accent Pins */}
-                  <div className="absolute top-2.5 left-2.5 w-1.5 h-1.5 bg-[#F59E0B]/80 rounded-full" />
-                  <div className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-[#F59E0B]/80 rounded-full" />
-                  <div className="absolute bottom-2.5 left-2.5 w-1.5 h-1.5 bg-[#F59E0B]/80 rounded-full" />
-                  <div className="absolute bottom-2.5 right-2.5 w-1.5 h-1.5 bg-[#F59E0B]/80 rounded-full" />
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#27E7A3]/8 border border-[#27E7A3]/20 text-[9px] font-mono text-[#27E7A3]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#27E7A3] animate-pulse" />
+                  <span>0x6a2...8f2c</span>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Interactive Selected Pillar Info Pill */}
-          <div className="mt-5 w-full max-w-sm px-4 py-2 rounded-xl bg-[#111318]/85 border border-slate-800 backdrop-blur-md flex items-center justify-between text-xs font-mono">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: currentPillar.color }} />
-              <span className="text-slate-200 font-bold">{currentPillar.title}</span>
+            {/* Dashboard content */}
+            <div className="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-12 gap-4">
+
+              {/* LEFT sub-card: Trade detail */}
+              <div className="md:col-span-6 rounded-xl bg-[#050912]/70 border border-[#1E3250]/70 p-4 space-y-3.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-mono text-[9px] text-[#8E9DB1] uppercase tracking-wider block">
+                      Trade Verification
+                    </span>
+                    <span className="font-mono text-[10px] text-[#4A607C]">TRD-925-0043</span>
+                  </div>
+                  <span
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold"
+                    style={{
+                      background: "rgba(39,231,163,0.1)",
+                      color: "#27E7A3",
+                      border: "1px solid rgba(39,231,163,0.3)",
+                    }}
+                  >
+                    <CheckCircle2 className="w-2.5 h-2.5" /> Verified
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3 p-2.5 rounded-lg bg-[#07121E] border border-[#1E3250]/50">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden relative shrink-0 border border-[#1E3250]">
+                    <Image
+                      src="/assets/maritime_cargo.jpg"
+                      alt="Iron Ore Cargo"
+                      fill
+                      className="object-cover"
+                      sizes="48px"
+                    />
+                  </div>
+                  <div>
+                    <h4 className="font-body font-bold text-[#E7EDF5] text-[11px]">Iron Ore (Fe 62%)</h4>
+                    <p className="font-mono text-[9px] text-[#8E9DB1] mt-0.5">12,500 MT · $12.5M</p>
+                    <p className="font-mono text-[8px] text-[#4A607C] mt-0.5">Physical Freight</p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  {[
+                    { label: "Origin",    val: "Saldanha Port, ZA", dot: "#18D8E8" },
+                    { label: "Transport", val: "In Transit · Bulk",  dot: "#F6B72C" },
+                    { label: "Custody",   val: "Mundra Port, IN",    dot: "#27E7A3" },
+                  ].map((r) => (
+                    <div key={r.label} className="flex items-center gap-2 font-mono text-[9px]">
+                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: r.dot }} />
+                      <span className="text-[#4A607C] w-12 shrink-0">{r.label}</span>
+                      <span className="text-[#8E9DB1]">{r.val}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-2.5 border-t border-[#1E3250]/50 space-y-1.5">
+                  {[
+                    "Origin Documents",
+                    "Transport Records",
+                    "Chain of Custody",
+                    "Counterparty KYC",
+                  ].map((item) => (
+                    <div key={item} className="flex items-center justify-between font-mono text-[9px]">
+                      <span className="text-[#8E9DB1]">{item}</span>
+                      <span className="text-[#27E7A3]">✓</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* RIGHT sub-card: Rajmudra orbital */}
+              <div className="md:col-span-6 rounded-xl bg-[#050912]/70 border border-[#1E3250]/70 flex flex-col items-center justify-center p-3 relative min-h-[250px] overflow-hidden">
+                {/* Gold ambient */}
+                <div
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                  style={{
+                    background: "radial-gradient(circle at 50% 50%, rgba(246,183,44,0.1) 0%, transparent 65%)",
+                  }}
+                />
+
+                {/* Symmetrical Square Orbital diagram */}
+                <div className="relative w-[230px] h-[230px] mx-auto flex items-center justify-center">
+                  {/* SVG rings & lines */}
+                  <svg
+                    className="absolute inset-0 w-full h-full pointer-events-none"
+                    viewBox="0 0 230 230"
+                  >
+                    <circle cx="115" cy="115" r="88" fill="none" stroke="rgba(30,50,80,0.55)" strokeWidth="1" />
+                    <circle
+                      cx="115" cy="115" r="78"
+                      fill="none"
+                      stroke="rgba(246,183,44,0.18)"
+                      strokeWidth="0.8"
+                      strokeDasharray="4 6"
+                    />
+                    <circle cx="115" cy="115" r="42" fill="none" stroke="rgba(24,216,232,0.12)" strokeWidth="0.6" />
+                    {orbitalNodes.map((node) => {
+                      const rad = ((node.angle - 90) * Math.PI) / 180;
+                      const x1 = Math.round((115 + 48 * Math.cos(rad)) * 10) / 10;
+                      const y1 = Math.round((115 + 48 * Math.sin(rad)) * 10) / 10;
+                      const x2 = Math.round((115 + 80 * Math.cos(rad)) * 10) / 10;
+                      const y2 = Math.round((115 + 80 * Math.sin(rad)) * 10) / 10;
+                      return (
+                        <line
+                          key={node.label}
+                          x1={x1} y1={y1}
+                          x2={x2} y2={y2}
+                          stroke={node.color}
+                          strokeWidth="0.6"
+                          strokeOpacity={activeNode === node.label ? 0.75 : 0.2}
+                        />
+                      );
+                    })}
+                  </svg>
+
+                  {/* Central realistic seal - dead center */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-auto">
+                    <RajmudraSeal size={104} glow priority />
+                  </div>
+
+                  {/* Orbital node buttons */}
+                  {orbitalNodes.map((node) => (
+                    <OrbitalNode
+                      key={node.label}
+                      label={node.label}
+                      angle={node.angle}
+                      radius={38.2}
+                      color={node.color}
+                      active={activeNode === node.label}
+                      onClick={() => setActiveNode(node.label)}
+                    />
+                  ))}
+                </div>
+
+                <span className="font-mono text-[8.5px] text-[#4A607C] tracking-wider mt-1.5">
+                  Ashta Pradhan Governance Layer
+                </span>
+              </div>
             </div>
-            <span className="text-[10px] text-slate-400 truncate max-w-[150px]">
-              {currentPillar.desc}
-            </span>
+
+            {/* Bottom metrics strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 border-t border-[#1E3250]/70">
+              {[
+                { label: "Provenance",  val: "Verified",  sub: "Origin · Transport · Custody", color: "#27E7A3" },
+                { label: "Collateral",  val: "Locked",    sub: "100% · LTV 70%",               color: "#18D8E8" },
+                { label: "ZK Proof",    val: "On-chain",  sub: "Valid · Token-2022 Compliant",  color: "#9A65FF" },
+                { label: "Trade Value", val: "$12.5M",    sub: "View Details →",                color: "#FFD35A" },
+              ].map((m, i) => (
+                <div
+                  key={i}
+                  className={`px-4 py-3 space-y-0.5 ${i > 0 ? "border-l border-[#1E3250]/60" : ""}`}
+                >
+                  <span className="font-mono text-[8.5px] text-[#4A607C] uppercase tracking-wider block">
+                    {m.label}
+                  </span>
+                  <span className="font-mono text-[11px] font-bold block" style={{ color: m.color }}>
+                    {m.val}
+                  </span>
+                  <span className="font-mono text-[8px] text-[#4A607C] block">{m.sub}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

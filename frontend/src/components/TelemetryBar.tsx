@@ -1,137 +1,97 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Activity, ShieldCheck, Check, Copy } from "lucide-react";
+import React from "react";
+import { ShieldCheck, Zap, Lock, FileCheck2 } from "lucide-react";
 
 export const TelemetryBar: React.FC = () => {
-  const [currentSlot, setCurrentSlot] = useState(264891048);
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlot((prev) => prev + Math.floor(Math.random() * 3) + 1);
-    }, 1800);
-    return () => clearInterval(interval);
-  }, []);
-
-  const metrics = [
+  const trustPills = [
     {
-      id: 1,
-      label: "TOTAL VALUE LOCKED",
-      value: "$24.7M",
-      sub: "+14.2% Past 30D",
-      dotColor: "#F59E0B",
-      valueColor: "text-[#F59E0B]",
-      glow: "drop-shadow-[0_0_12px_rgba(245,158,11,0.5)]",
-      pulse: true,
+      title: "Solana Mainnet",
+      desc: "High performance. Low cost.",
+      icon: Zap,
+      iconColor: "#27E7A3",
+      accentBg: "rgba(39,231,163,0.06)",
+      accentBorder: "rgba(39,231,163,0.18)",
+      dot: "#27E7A3",
     },
     {
-      id: 2,
-      label: "TARGET APY (USD)",
-      value: "18.2%",
-      sub: "Real-World Invoice Yield",
-      dotColor: "#14F195",
-      valueColor: "text-[#14F195]",
-      glow: "drop-shadow-[0_0_12px_rgba(20,241,149,0.4)]",
-      pulse: false,
+      title: "Zero-Knowledge Verification",
+      desc: "Private. Verifiable. Trustless.",
+      icon: ShieldCheck,
+      iconColor: "#18D8E8",
+      accentBg: "rgba(24,216,232,0.06)",
+      accentBorder: "rgba(24,216,232,0.18)",
+      dot: "#18D8E8",
     },
     {
-      id: 3,
-      label: "SETTLEMENT FINALITY",
-      value: "400ms",
-      sub: "Solana Slot Confirmation",
-      dotColor: "#9945FF",
-      valueColor: "text-[#9945FF]",
-      glow: "drop-shadow-[0_0_12px_rgba(153,69,255,0.4)]",
-      pulse: false,
+      title: "Token-2022 Confidential Transfers",
+      desc: "Enterprise-grade confidentiality.",
+      icon: Lock,
+      iconColor: "#9A65FF",
+      accentBg: "rgba(154,101,255,0.06)",
+      accentBorder: "rgba(154,101,255,0.18)",
+      dot: "#9A65FF",
     },
     {
-      id: 4,
-      label: "COLLATERAL PROVENANCE",
-      value: "100%",
-      sub: "Zero Double-Pledge Risk",
-      dotColor: "#00F2FE",
-      valueColor: "text-[#00F2FE]",
-      glow: "drop-shadow-[0_0_12px_rgba(0,242,254,0.4)]",
-      pulse: false,
-    },
-    {
-      id: 5,
-      label: "ZK VERIFICATION",
-      value: "< 50ms",
-      sub: "Groth16 / BN254 Solana Rollup",
-      dotColor: "#FCD34D",
-      valueColor: "text-[#FCD34D]",
-      glow: "drop-shadow-[0_0_12px_rgba(252,211,77,0.4)]",
-      pulse: false,
+      title: "Dual Formal Audits",
+      desc: "Independent security reviews.",
+      icon: FileCheck2,
+      iconColor: "#F6B72C",
+      accentBg: "rgba(246,183,44,0.06)",
+      accentBorder: "rgba(246,183,44,0.18)",
+      dot: "#F6B72C",
     },
   ];
 
-  const handleCopy = (idx: number, text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedIndex(idx);
-    setTimeout(() => setCopiedIndex(null), 1500);
-  };
-
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto -mt-6 sm:-mt-8 mb-16 relative z-20" id="telemetry">
-      <div className="w-full bg-[#111318]/90 border border-[#F59E0B]/30 rounded-2xl p-4 sm:p-6 backdrop-blur-xl shadow-2xl relative overflow-hidden">
-        {/* Subtle decorative circuit watermark */}
-        <div className="absolute top-0 right-0 w-80 h-full opacity-5 pointer-events-none bg-[radial-gradient(#00F2FE_1px,transparent_1px)] [background-size:16px_16px]" />
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-800/80">
-          {metrics.map((m, idx) => (
+    <section className="py-6 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {trustPills.map((pill, idx) => {
+          const IconComponent = pill.icon;
+          return (
             <div
-              key={m.id}
-              onClick={() => handleCopy(idx, `${m.label}: ${m.value}`)}
-              className={`flex flex-col items-center sm:items-start px-3 py-1 cursor-pointer group transition-colors hover:bg-white/[0.02] rounded-lg ${
-                idx === 4 ? "col-span-2 sm:col-span-1" : ""
-              } ${idx > 0 && idx < 4 ? "pt-3 sm:pt-1" : ""}`}
-              title="Click to copy metric"
+              key={idx}
+              className="group flex items-center gap-4 px-4 py-4 rounded-xl transition-all duration-300 cursor-default"
+              style={{
+                background: "rgba(7,18,30,0.8)",
+                border: `1px solid rgba(30,50,80,0.8)`,
+              }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget;
+                el.style.borderColor = pill.accentBorder;
+                el.style.background = pill.accentBg;
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget;
+                el.style.borderColor = "rgba(30,50,80,0.8)";
+                el.style.background = "rgba(7,18,30,0.8)";
+              }}
             >
-              <div className="flex items-center gap-1.5 text-slate-400 text-[11px] font-mono tracking-wider uppercase">
-                <span
-                  className={`w-2 h-2 rounded-full ${m.pulse ? "animate-pulse" : ""}`}
-                  style={{ backgroundColor: m.dotColor }}
-                />
-                <span className="group-hover:text-slate-200 transition-colors">
-                  {m.label}
-                </span>
-                {copiedIndex === idx && (
-                  <Check className="w-3 h-3 text-[#14F195] ml-1 inline" />
-                )}
-              </div>
-
-              <span
-                className={`font-mono text-2xl lg:text-3xl font-bold ${m.valueColor} ${m.glow} mt-1 tracking-tight`}
+              <div
+                className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300"
+                style={{
+                  background: pill.accentBg,
+                  border: `1px solid ${pill.accentBorder}`,
+                }}
               >
-                {m.value}
-              </span>
-
-              <span className="font-mono text-[10px] text-slate-500 mt-0.5 group-hover:text-slate-400 transition-colors">
-                {m.sub}
-              </span>
+                <IconComponent className="w-4 h-4" style={{ color: pill.iconColor }} />
+              </div>
+              <div className="text-left min-w-0">
+                <h4 className="font-body text-[11.5px] font-semibold text-[#E7EDF5] leading-tight">
+                  {pill.title}
+                </h4>
+                <p className="text-[10.5px] font-body text-[#8E9DB1] mt-0.5">
+                  {pill.desc}
+                </p>
+              </div>
+              {/* Right indicator dot */}
+              <div className="ml-auto shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full block" style={{ background: pill.dot, opacity: 0.6 }} />
+              </div>
             </div>
-          ))}
-        </div>
-
-        {/* Live Slot & Solana Network Telemetry Bar */}
-        <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between text-[11px] font-mono text-slate-500 gap-2">
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#14F195] animate-ping" />
-            <span className="text-slate-400">Solana Slot:</span>
-            <span className="text-[#00F2FE] font-bold">{currentSlot.toLocaleString()}</span>
-            <span className="text-slate-700">|</span>
-            <span className="text-slate-400">TPS:</span>
-            <span className="text-[#14F195] font-bold">2,842</span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-slate-500">Epoch 698</span>
-            <span className="text-[#F59E0B] font-semibold">Rajmudra ZK Verifier v3.4.12</span>
-          </div>
-        </div>
+          );
+        })}
       </div>
-    </div>
+    </section>
   );
 };

@@ -1,0 +1,73 @@
+services:
+  # 1. PostgreSQL Database for Off-chain Ingestion & Proof Artifacts
+  postgres:
+    image: postgres:16-alpine
+    container_name: mudraa_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: mudraa_admin
+      POSTGRES_PASSWORD: mudraa_dev_password
+      POSTGRES_DB: mudraa_trade
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mudraa_admin -d mudraa_trade"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. FastAPI Ingestion & ZK Relayer Service
+  offchain-api:
+    build:
+      context: ./backend/offchain_service
+      dockerfile: Dockerfile
+    container_name: mudraa_api
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://mudraa_admin:mudraa_dev_password@postgres:5432/mudraa_trade
+      PORT: "8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/offchain_service:/app
+
+  # 3. Next.js Enterprise Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mudraa_frontend
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+      - WATCHPACK_POLLING=true
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    ports:
+      - "3000:3000"
+    command: npm run dev
+
+  # 4. Solana Anchor Toolchain Workspace (Optional Profile)
+  anchor-builder:
+    image: hogyzen12/anchor-docker:latest
+    container_name: mudraa_anchor
+    working_dir: /workspace/backend/programs/mudraa_core
+    volumes:
+      - ./backend:/workspace/backend
+    stdin_open: true
+    tty: true
+    profiles:
+      - toolchain
+
+volumes:
+  pgdata:
