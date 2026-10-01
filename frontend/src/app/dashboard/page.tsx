@@ -9,7 +9,9 @@ import { LiquidityDeskPanel } from "@/components/workspace/LiquidityDeskPanel";
 import { ExporterInvoiceModal } from "@/components/workspace/ExporterInvoiceModal";
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<"overview" | "exporter" | "liquidity">("overview");
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "exporter" | "liquidity" | "factoring" | "verification" | "secondary"
+  >("overview");
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
   return (

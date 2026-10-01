@@ -1,6 +1,7 @@
 {
   "name": "mudraa-core",
   "version": "0.1.0",
+  "type": "module",
   "description": "MudrAA Core Rajmudra Verification Engine",
   "scripts": {
     "test": "ts-mocha -p ./tsconfig.json -t 1000000 'tests/**/*.ts'"

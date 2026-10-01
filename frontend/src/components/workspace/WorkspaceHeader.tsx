@@ -21,8 +21,8 @@ import {
 } from "lucide-react";
 
 interface WorkspaceHeaderProps {
-  activeTab?: "exporter" | "liquidity" | "overview";
-  onTabChange?: (tab: "exporter" | "liquidity" | "overview") => void;
+  activeTab?: "exporter" | "liquidity" | "overview" | "factoring" | "verification" | "secondary";
+  onTabChange?: (tab: "exporter" | "liquidity" | "overview" | "factoring" | "verification" | "secondary") => void;
 }
 
 export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
@@ -43,9 +43,12 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   };
 
   const navItems = [
-    { id: "overview", label: "Protocol Overview", href: "/dashboard" },
-    { id: "exporter", label: "Exporter Portal", href: "/exporter" },
-    { id: "liquidity", label: "Liquidity Desk", href: "/liquidity" },
+    { id: "overview", label: "Overview", href: "/dashboard", icon: Layers },
+    { id: "exporter", label: "Exporter Desk", href: "/exporter", icon: Ship },
+    { id: "factoring", label: "Factoring", href: "/exporter/factoring", icon: Sparkles },
+    { id: "liquidity", label: "Liquidity Desk", href: "/liquidity", icon: Building2 },
+    { id: "verification", label: "ZK Explorer", href: "/verification", icon: Shield },
+    { id: "secondary", label: "Secondary", href: "/secondary", icon: Activity },
   ];
 
   return (
@@ -74,8 +77,9 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
           </Link>
 
           {/* Role Navigation Pills */}
-          <nav className="hidden md:flex items-center gap-1.5 p-1 rounded-xl bg-[#101420] border border-slate-800">
+          <nav className="hidden xl:flex items-center gap-1.5 p-1 rounded-xl bg-[#101420] border border-slate-800">
             {navItems.map((item) => {
+              const Icon = item.icon;
               const isActive =
                 activeTab === item.id ||
                 pathname === item.href ||
@@ -86,19 +90,17 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
                   key={item.id}
                   onClick={() => {
                     if (onTabChange) {
-                      onTabChange(item.id as "exporter" | "liquidity" | "overview");
+                      onTabChange(item.id as any);
                     }
                   }}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-medium font-body transition-all duration-150 cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium font-body transition-all duration-150 cursor-pointer ${
                     isActive
                       ? "bg-gradient-to-r from-[#F59E0B]/20 to-[#FCD34D]/10 text-[#FCD34D] border border-[#F59E0B]/40 shadow-sm"
                       : "text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent"
                   }`}
                 >
                   <Link href={item.href} className="flex items-center gap-1.5">
-                    {item.id === "exporter" && <Ship className="w-3.5 h-3.5" />}
-                    {item.id === "liquidity" && <Building2 className="w-3.5 h-3.5" />}
-                    {item.id === "overview" && <Layers className="w-3.5 h-3.5" />}
+                    <Icon className="w-3.5 h-3.5" />
                     <span>{item.label}</span>
                   </Link>
                 </button>

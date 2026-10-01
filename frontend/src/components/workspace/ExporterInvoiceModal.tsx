@@ -13,6 +13,7 @@ import {
   Sparkles,
   Lock,
 } from "lucide-react";
+import { executeProofGeneration, ProofResult } from "@/lib/zk/zk-worker";
 
 interface ExporterInvoiceModalProps {
   isOpen: boolean;
@@ -33,10 +34,11 @@ export const ExporterInvoiceModal: React.FC<ExporterInvoiceModalProps> = ({
   const [bolNumber, setBolNumber] = useState("BL-HAPAG-992144");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [proofGenerated, setProofGenerated] = useState(false);
+  const [lastProof, setLastProof] = useState<ProofResult | null>(null);
 
   if (!isOpen) return null;
 
-  const advanceRate = 0.85;
+  const advanceRate = 0.75; // Anchor protocol cap: 75%
   const advanceAmount = Math.round(amountUsdc * advanceRate);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,12 +46,20 @@ export const ExporterInvoiceModal: React.FC<ExporterInvoiceModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Simulate Peppol BIS 3.0 hash calculation and Rajmudra ZK circuit generation
-      await new Promise((r) => setTimeout(r, 1200));
+      // Execute Rajmudra client-side Poseidon ZK prover
+      const proofResult = executeProofGeneration({
+        taxId: "27AABCS1429B1Z0",
+        buyerId: buyerName.slice(0, 16),
+        faceValue: amountUsdc,
+        tenorDays: 60,
+        secretSalt: "0x8f72a9e102bc45de89104fa39d2c189b",
+        supplierPubkey: "MudrAASupplier11111111111111111111111111111",
+      });
+      setLastProof(proofResult);
 
       // Attempt to post to our FastAPI backend if available
       try {
-        await fetch("http://localhost:8000/api/v1/trade/ingest", {
+        await fetch("http://localhost:8000/api/v1/trade/invoices/ingest-xml", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -57,7 +67,7 @@ export const ExporterInvoiceModal: React.FC<ExporterInvoiceModalProps> = ({
             exporter_id: "EXP-IND-MH-01",
             importer_id: buyerName.slice(0, 12),
             amount_usdc: amountUsdc,
-            peppol_bis_hash: "0x8f72a9e102bc45de89104fa39d2c189b782910fa",
+            peppol_bis_hash: proofResult.nullifierHash,
             cargo_tracking_bill: bolNumber,
           }),
         });
@@ -119,13 +129,13 @@ export const ExporterInvoiceModal: React.FC<ExporterInvoiceModalProps> = ({
               Register Trade Invoice &amp; Request Advance
             </h3>
             <p className="font-mono text-xs text-slate-400">
-              Trigger Rajmudra ZK-SNARK proof and receive up to 85% instant capital
+              Trigger Rajmudra ZK-SNARK proof and receive up to 75% instant capital
             </p>
           </div>
         </div>
 
         {proofGenerated ? (
-          <div className="py-10 text-center space-y-3 animate-fade-in">
+          <div className="py-8 text-center space-y-3 animate-fade-in">
             <div className="w-16 h-16 rounded-full bg-[#14F195]/15 border border-[#14F195] flex items-center justify-center mx-auto text-[#14F195]">
               <CheckCircle2 className="w-8 h-8" />
             </div>
@@ -133,12 +143,28 @@ export const ExporterInvoiceModal: React.FC<ExporterInvoiceModalProps> = ({
               Rajmudra Verification Perfected!
             </h4>
             <p className="text-xs font-mono text-slate-400 max-w-sm mx-auto">
-              Peppol BIS 3.0 canonical hash committed to Solana Devnet. Advance of{" "}
+              Peppol BIS 3.0 canonical hash committed to Solana Devnet. 75% Advance of{" "}
               <span className="text-[#14F195] font-bold">
                 ${advanceAmount.toLocaleString()} USDC
               </span>{" "}
               is ready for instant disbursement.
             </p>
+            {lastProof && (
+              <div className="p-2.5 rounded-lg bg-black/60 border border-slate-800 font-mono text-[10.5px] text-slate-400 max-w-md mx-auto text-left space-y-1 mt-2">
+                <div className="text-slate-300 font-semibold flex justify-between">
+                  <span>Prover Speed:</span>
+                  <span className="text-[#14F195]">{lastProof.executionTimeMs}ms</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Compute Budget:</span>
+                  <span className="text-[#00F2FE]">{lastProof.computeUnitsEst.toLocaleString()} CU</span>
+                </div>
+                <div className="truncate">
+                  <span>Nullifier: </span>
+                  <span className="text-white">{lastProof.nullifierHash.slice(0, 22)}...</span>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 text-xs font-body">

@@ -1,0 +1,15 @@
+{
+  "name": "mudraa-zk-circuits",
+  "version": "1.0.0",
+  "description": "MudrAA Protocol - Rajmudra Groth16 Zero-Knowledge Circuits & Setup",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test_circuit.js",
+    "compile": "circom invoice_verifier.circom --r1cs --wasm --sym -o build/",
+    "setup": "node setup_ceremony.js"
+  },
+  "dependencies": {
+    "circomlibjs": "^0.1.7",
+    "snarkjs": "^0.7.5"
+  }
+}
