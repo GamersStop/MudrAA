@@ -50,6 +50,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
+  transpilePackages: ["@solana/web3.js"],
   images: {
     unoptimized: true,
   },
