@@ -36,7 +36,7 @@ export const Navbar: React.FC = () => {
     { label: "Architecture", href: "#architecture", id: "architecture" },
     { label: "Governance", href: "#governance", id: "governance" },
     { label: "Ecosystem", href: "#product", id: "ecosystem" },
-    { label: "Docs", href: "https://github.com/MudrAA", id: "docs", external: true },
+    { label: "Docs", href: "https://github.com/GamersStop/MudrAA", id: "docs", external: true },
   ];
 
   return (

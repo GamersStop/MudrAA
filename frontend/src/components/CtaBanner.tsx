@@ -92,7 +92,7 @@ export const CtaBanner: React.FC = () => {
               </button>
 
               <a
-                href="https://github.com/MudrAA"
+                href="https://github.com/GamersStop/MudrAA"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 px-5 py-3.5 rounded-lg border border-[#1E3250] bg-white/[0.04] hover:bg-white/[0.08] hover:border-[#2A4060] text-[#8E9DB1] hover:text-white font-body text-sm transition-all cursor-pointer"

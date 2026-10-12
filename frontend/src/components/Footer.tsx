@@ -13,7 +13,7 @@ export const Footer: React.FC = () => {
     { label: "Ecosystem", href: "/#product" },
     { label: "Terms", href: "/terms", internal: true },
     { label: "Privacy & Cookies", href: "/privacy", internal: true },
-    { label: "Docs", href: "https://github.com/MudrAA", external: true },
+    { label: "Docs", href: "https://github.com/GamersStop/MudrAA", external: true },
   ];
 
   return (
@@ -84,7 +84,7 @@ export const Footer: React.FC = () => {
 
             {/* GitHub */}
             <a
-              href="https://github.com/MudrAA"
+              href="https://github.com/GamersStop/MudrAA"
               target="_blank"
               rel="noreferrer"
               className="hover:text-white transition-colors"
