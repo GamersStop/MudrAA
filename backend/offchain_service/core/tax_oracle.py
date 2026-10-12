@@ -22,9 +22,8 @@ _KEY_ENV = os.getenv("SUMANT_TAX_ORACLE_KEY_HEX")
 if _KEY_ENV and len(_KEY_ENV) == 64:
     _ORACLE_PRIVATE_KEY = ed25519.Ed25519PrivateKey.from_private_bytes(bytes.fromhex(_KEY_ENV))
 else:
-    # Deterministic persistent seed preventing key drift across service restarts
-    _DETERMINISTIC_SEED = hashlib.sha256(b"mudraa_tax_oracle_master_seed_v1").digest()
-    _ORACLE_PRIVATE_KEY = ed25519.Ed25519PrivateKey.from_private_bytes(_DETERMINISTIC_SEED)
+    # Generate cryptographically secure ephemeral key if KMS/environment variable is unset
+    _ORACLE_PRIVATE_KEY = ed25519.Ed25519PrivateKey.generate()
 
 ORACLE_PUBLIC_KEY = _ORACLE_PRIVATE_KEY.public_key()
 ORACLE_PUBLIC_KEY_BYTES = ORACLE_PUBLIC_KEY.public_bytes_raw()

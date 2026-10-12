@@ -168,18 +168,20 @@ class RajmudraProver:
                 "faceValue": str(face_value),
                 "tenorDays": str(tenor_days),
                 "secretSalt": str(to_field_element(secret_salt)),
-                "supplierPubkey": str(to_field_element(supplier_pubkey)),
             },
             "public_inputs": {
                 "nullifierHash": str(nullifier),
                 "invoiceCommitment": str(commitment),
                 "minFaceValue": str(self.min_face_value),
                 "maxTenorDays": str(self.max_tenor_days),
+                "supplierPubkey": str(to_field_element(supplier_pubkey)),
             },
             "commitment_int": commitment,
             "nullifier_int": nullifier,
+            "supplier_pubkey_int": to_field_element(supplier_pubkey),
             "commitment_bytes": commitment.to_bytes(32, byteorder="big"),
             "nullifier_bytes": nullifier.to_bytes(32, byteorder="big"),
+            "supplier_pubkey_bytes": to_field_element(supplier_pubkey).to_bytes(32, byteorder="big"),
         }
 
     def synthesize_groth16_proof(self, witness: Dict[str, Any]) -> Groth16Proof:
@@ -191,12 +193,14 @@ class RajmudraProver:
         commitment_bytes = witness["commitment_bytes"]
         min_val_bytes = self.min_face_value.to_bytes(32, byteorder="big")
         max_tenor_bytes = self.max_tenor_days.to_bytes(32, byteorder="big")
+        supplier_pubkey_bytes = witness["supplier_pubkey_bytes"]
 
         public_inputs = [
             nullifier_bytes,
             commitment_bytes,
             min_val_bytes,
-            max_tenor_bytes
+            max_tenor_bytes,
+            supplier_pubkey_bytes
         ]
 
         # Generate deterministic BN254 G1 and G2 coordinates seeded by the witness

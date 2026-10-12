@@ -16,8 +16,11 @@ from sqlalchemy import Column, DateTime, Index
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 # Environment-configurable 256-bit symmetric encryption key for data-at-rest protection
-ENCRYPTION_KEY_RAW = os.getenv("METADATA_ENCRYPTION_KEY", "mudraa_dev_aes256_secret_key_32b!")
-if len(ENCRYPTION_KEY_RAW.encode("utf-8")) < 32:
+ENCRYPTION_KEY_RAW = os.getenv("METADATA_ENCRYPTION_KEY")
+if not ENCRYPTION_KEY_RAW:
+    # Use cryptographically secure 256-bit random bytes if KMS/environment variable is unset
+    ENCRYPTION_KEY = os.urandom(32)
+elif len(ENCRYPTION_KEY_RAW.encode("utf-8")) < 32:
     ENCRYPTION_KEY = ENCRYPTION_KEY_RAW.encode("utf-8").ljust(32, b"0")[:32]
 else:
     ENCRYPTION_KEY = ENCRYPTION_KEY_RAW.encode("utf-8")[:32]

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import { RajmudraStatusBar } from "@/components/workspace/RajmudraStatusBar";
+import { AuthGuard } from "@/components/workspace/AuthGuard";
 import {
   FileText,
   Ship,
@@ -140,8 +141,9 @@ export default function ExporterInvoicesPage() {
   const totalEligibleAdvance = Math.round(totalReceivables * 0.75);
 
   return (
-    <div className="min-h-screen bg-[#06070A] text-slate-100 font-body antialiased selection:bg-[#F59E0B]/20 selection:text-[#FCD34D] pcb-grid-bg">
-      <WorkspaceHeader activeTab="exporter" />
+    <AuthGuard>
+      <div className="min-h-screen bg-[#06070A] text-slate-100 font-body antialiased selection:bg-[#F59E0B]/20 selection:text-[#FCD34D] pcb-grid-bg">
+        <WorkspaceHeader activeTab="exporter" />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Page Title & Breadcrumbs */}
@@ -363,5 +365,6 @@ export default function ExporterInvoicesPage() {
         </div>
       </main>
     </div>
+    </AuthGuard>
   );
 }

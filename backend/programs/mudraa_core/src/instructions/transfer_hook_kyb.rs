@@ -77,19 +77,27 @@ pub fn handler_transfer_hook(
 ) -> Result<()> {
     let dest_kyb = &ctx.accounts.destination_kyb;
 
-    // 1. Verify Destination Token Account Ownership (Threat A.4: Sanctions Evasion Defense)
+    // 1. Verify Destination Token Account Ownership & Layout (Threat A.4: Sanctions Evasion Defense)
     let dest_account_info = &ctx.accounts.destination_token_account;
-    if !dest_account_info.data_is_empty() && dest_account_info.data_len() >= 64 {
-        let data = dest_account_info.try_borrow_data()?;
-        let actual_owner = Pubkey::new_from_array(
-            data[32..64].try_into().map_err(|_| MudraaError::UnauthorizedSigner)?
-        );
-        require_keys_eq!(
-            actual_owner,
-            ctx.accounts.destination_owner.key(),
-            MudraaError::UnauthorizedSigner
-        );
-    }
+    require!(
+        !dest_account_info.data_is_empty() && dest_account_info.data_len() >= 64,
+        MudraaError::UnauthorizedSigner
+    );
+
+    let data = dest_account_info.try_borrow_data()?;
+    let actual_owner = Pubkey::new_from_array(
+        data[32..64].try_into().map_err(|_| MudraaError::UnauthorizedSigner)?
+    );
+    require_keys_eq!(
+        actual_owner,
+        ctx.accounts.destination_owner.key(),
+        MudraaError::UnauthorizedSigner
+    );
+    require_keys_eq!(
+        dest_kyb.wallet,
+        ctx.accounts.destination_owner.key(),
+        MudraaError::UnauthorizedSigner
+    );
 
     // 2. Sanctions Screening (OFAC Defense)
     require!(

@@ -1,10 +1,18 @@
 use anchor_lang::prelude::*;
-use crate::state::LegalEscrowRecord;
+use crate::state::{LegalEscrowRecord, InvoiceRecord, InvoiceStatus};
 use crate::errors::MudraaError;
 
 #[derive(Accounts)]
 #[instruction(invoice_id_hash: [u8; 32])]
 pub struct AnchorLegalEscrow<'info> {
+    #[account(
+        mut,
+        seeds = [b"invoice_record", invoice_id_hash.as_ref()],
+        bump = invoice_record.bump,
+        constraint = invoice_record.status == InvoiceStatus::Registered @ MudraaError::InvalidStateTransition
+    )]
+    pub invoice_record: Account<'info, InvoiceRecord>,
+
     #[account(
         init,
         payer = spv_authority,
@@ -26,15 +34,11 @@ pub fn handler(
     supplier_noa_signature: [u8; 64],
     buyer_waiver_signature: [u8; 64]
 ) -> Result<()> {
-    // Validate signature bytes are not zeroed
-    require!(
-        supplier_noa_signature.iter().any(|&b| b != 0),
-        MudraaError::LegalEscrowMissing
-    );
-    require!(
-        buyer_waiver_signature.iter().any(|&b| b != 0),
-        MudraaError::LegalEscrowMissing
-    );
+    // Validate signature bytes have sufficient non-trivial entropy (not all zeros or trivial padding)
+    let non_zero_supplier = supplier_noa_signature.iter().filter(|&&b| b != 0).count();
+    let non_zero_buyer = buyer_waiver_signature.iter().filter(|&&b| b != 0).count();
+    require!(non_zero_supplier >= 32, MudraaError::LegalEscrowMissing);
+    require!(non_zero_buyer >= 32, MudraaError::LegalEscrowMissing);
 
     let escrow = &mut ctx.accounts.legal_escrow;
     escrow.invoice_id_hash = invoice_id_hash;
@@ -44,6 +48,10 @@ pub fn handler(
     escrow.is_mletr_perfected = true;
     escrow.bump = ctx.bumps.legal_escrow;
 
-    msg!("Nyayadhish Legal Escrow: UNCITRAL MLETR & UCC-1 assignment perfected on-chain.");
+    // Transition invoice state to Attested
+    let invoice = &mut ctx.accounts.invoice_record;
+    invoice.status = InvoiceStatus::Attested;
+
+    msg!("Nyayadhish Legal Escrow: UNCITRAL MLETR & UCC-1 assignment perfected on-chain for invoice {}.", invoice.exporter);
     Ok(())
 }

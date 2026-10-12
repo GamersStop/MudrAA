@@ -19,16 +19,22 @@ class CarrierOracleError(Exception):
 # Maps carrier_code to their official Ed25519 public key and corporate metadata
 CARRIER_ALLOWLIST: Dict[str, Dict[str, Any]] = {}
 
-# Dedicated carrier keypairs (Persistent Key Management)
-_MAERSK_KEYPAIR = ed25519.Ed25519PrivateKey.from_private_bytes(
-    hashlib.sha256(b"mudraa_carrier_maersk_key_seed_v1").digest()
-)
-_MSC_KEYPAIR = ed25519.Ed25519PrivateKey.from_private_bytes(
-    hashlib.sha256(b"mudraa_carrier_msc_key_seed_v1").digest()
-)
-_HAPAG_KEYPAIR = ed25519.Ed25519PrivateKey.from_private_bytes(
-    hashlib.sha256(b"mudraa_carrier_hapag_key_seed_v1").digest()
-)
+import os
+
+def _load_or_generate_carrier_key(env_var: str) -> ed25519.Ed25519PrivateKey:
+    val = os.getenv(env_var)
+    if val and len(val) == 64:
+        try:
+            return ed25519.Ed25519PrivateKey.from_private_bytes(bytes.fromhex(val))
+        except Exception:
+            pass
+    # Generate cryptographically secure ephemeral key if KMS/environment variable is unset
+    return ed25519.Ed25519PrivateKey.generate()
+
+# Dedicated carrier keypairs (Environment / KMS injection with secure ephemeral fallback)
+_MAERSK_KEYPAIR = _load_or_generate_carrier_key("CARRIER_MAERSK_KEY_HEX")
+_MSC_KEYPAIR = _load_or_generate_carrier_key("CARRIER_MSC_KEY_HEX")
+_HAPAG_KEYPAIR = _load_or_generate_carrier_key("CARRIER_HAPAG_KEY_HEX")
 
 CARRIER_ALLOWLIST["MAERSK"] = {
     "name": "A.P. Moller – Maersk",

@@ -27,9 +27,10 @@ pub fn handler(ctx: Context<AccrueLateFees>) -> Result<()> {
         MudraaError::InvalidStateTransition
     );
 
-    // Newly elapsed days past due since last accrual
-    let seconds_overdue = clock.unix_timestamp - invoice.due_timestamp;
-    let days_newly_overdue = (seconds_overdue / 86400) as u64;
+    // Calculate elapsed time from the last fee accrual point (defaults to due_timestamp)
+    let baseline_timestamp = std::cmp::max(invoice.due_timestamp, invoice.last_fee_accrual_timestamp);
+    let seconds_newly_overdue = clock.unix_timestamp.saturating_sub(baseline_timestamp);
+    let days_newly_overdue = (seconds_newly_overdue / 86400) as u64;
     require!(days_newly_overdue > 0, MudraaError::InvalidStateTransition);
 
     // Linear penalty fee rate: SOFR + 800 bps (~13% annual / ~0.0356% daily)
@@ -50,8 +51,8 @@ pub fn handler(ctx: Context<AccrueLateFees>) -> Result<()> {
         .checked_add(penalty_fee)
         .ok_or(MudraaError::MathOverflow)?;
 
-    // Advance due_timestamp forward by the accrued days to prevent compounding duplication
-    invoice.due_timestamp = invoice.due_timestamp
+    // Advance only last_fee_accrual_timestamp forward; due_timestamp remains immutable for buyback/slashing calculations
+    invoice.last_fee_accrual_timestamp = baseline_timestamp
         .checked_add((days_newly_overdue as i64) * 86400)
         .ok_or(MudraaError::MathOverflow)?;
 

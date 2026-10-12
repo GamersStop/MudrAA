@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
+import { AuthGuard } from "@/components/workspace/AuthGuard";
 import {
   Shield,
   ShieldCheck,
@@ -133,7 +134,8 @@ export default function VaultsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#06070A] text-slate-100 selection:bg-[#9945FF] selection:text-white font-sans">
+    <AuthGuard>
+      <div className="min-h-screen bg-[#06070A] text-slate-100 selection:bg-[#9945FF] selection:text-white font-sans">
       {/* Top Navigation */}
       <header className="sticky top-0 z-40 bg-[#08090D]/90 backdrop-blur-2xl border-b border-[#1E2438] px-4 lg:px-8 py-3.5">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -760,6 +762,7 @@ export default function VaultsPage() {
           </div>
         )}
       </main>
-    </div>
+      </div>
+    </AuthGuard>
   );
 }

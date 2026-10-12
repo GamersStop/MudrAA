@@ -52,6 +52,7 @@ pub fn handler(
     invoice.retainage_usdc = 0;
     invoice.total_repaid_usdc = 0;
     invoice.due_timestamp = due_timestamp;
+    invoice.last_fee_accrual_timestamp = due_timestamp;
     invoice.financed_at_slot = 0;
     invoice.status = InvoiceStatus::Registered;
     invoice.is_confidential = false;

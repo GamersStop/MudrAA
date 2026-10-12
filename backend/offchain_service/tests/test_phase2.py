@@ -123,14 +123,14 @@ def test_groth16_proof_serialization():
     assert len(proof.b) == 128
     # G1 Point C: 64 bytes
     assert len(proof.c) == 64
-    # Public Inputs: 4 elements of 32 bytes each
-    assert len(proof.public_inputs) == 4
+    # Public Inputs: 5 elements of 32 bytes each (includes supplierPubkey front-running mitigation)
+    assert len(proof.public_inputs) == 5
     for pi in proof.public_inputs:
         assert len(pi) == 32
 
-    # Total instruction data: 64 + 128 + 64 + (4 * 32) = 384 bytes
+    # Total instruction data: 64 + 128 + 64 + (5 * 32) = 416 bytes
     instruction_data = proof.serialize_instruction_data()
-    assert len(instruction_data) == 384
+    assert len(instruction_data) == 416
 
 
 def test_zcash_viewing_key_audit_workflow():
@@ -192,7 +192,7 @@ async def test_compliance_api_endpoints():
         assert len(proof_data["proof_a_hex"]) == 128 # 64 bytes = 128 hex chars
         assert len(proof_data["proof_b_hex"]) == 256 # 128 bytes = 256 hex chars
         assert len(proof_data["proof_c_hex"]) == 128 # 64 bytes = 128 hex chars
-        assert len(proof_data["instruction_data_hex"]) == 768 # 384 bytes = 768 hex chars
+        assert len(proof_data["instruction_data_hex"]) == 832 # 416 bytes = 832 hex chars
 
         nullifier_hex = proof_data["nullifier_hash_hex"]
         commitment_hex = proof_data["invoice_commitment_hex"]

@@ -1,55 +1,95 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useWallet } from "@/context/WalletContext";
 import {
   TrendingUp,
   DollarSign,
   Coins,
   Percent,
   ShieldCheck,
-  ArrowUpRight,
-  Sparkles,
+  FileCheck2,
 } from "lucide-react";
 
 export const PortfolioMetrics: React.FC = () => {
+  const { balanceSol } = useWallet();
+  const [totalFactored, setTotalFactored] = useState<number>(0);
+  const [totalDisbursed, setTotalDisbursed] = useState<number>(0);
+  const [activeInvoiceCount, setActiveInvoiceCount] = useState<number>(0);
+
+  const calculateMetrics = () => {
+    try {
+      const stored = localStorage.getItem("mudraa_transactions");
+      if (stored) {
+        const txs = JSON.parse(stored);
+        if (Array.isArray(txs)) {
+          const factored = txs.reduce((acc: number, item: any) => acc + (Number(item.amountUsdc) || 0), 0);
+          const disbursed = txs.reduce((acc: number, item: any) => acc + (Number(item.advanceAmountUsdc) || 0), 0);
+          setTotalFactored(factored);
+          setTotalDisbursed(disbursed);
+          setActiveInvoiceCount(txs.length);
+          return;
+        }
+      }
+    } catch {
+      // safe fallback
+    }
+    setTotalFactored(0);
+    setTotalDisbursed(0);
+    setActiveInvoiceCount(0);
+  };
+
+  useEffect(() => {
+    calculateMetrics();
+
+    const handleUpdate = () => calculateMetrics();
+    window.addEventListener("mudraa_transactions_updated", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+
+    return () => {
+      window.removeEventListener("mudraa_transactions_updated", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
+  }, []);
+
   const metrics = [
     {
-      title: "Total Value Locked (TVL)",
-      value: "$48,250,000",
-      change: "+14.8% (30d)",
-      changePositive: true,
-      subtext: "Secured across 8 multi-tranche sovereign vaults",
+      title: "Total Factored Volume",
+      value: totalFactored > 0 ? `$${totalFactored.toLocaleString()} USDC` : "$0.00 USDC",
+      change: activeInvoiceCount > 0 ? `${activeInvoiceCount} Active Receivables` : "No Active Receivables",
+      changePositive: activeInvoiceCount > 0,
+      subtext: "Aggregated from verified electronic invoices",
       icon: DollarSign,
       glowColor: "from-[#F59E0B]/20",
       borderColor: "border-[#F59E0B]/30",
     },
     {
-      title: "Available Factoring Liquidity",
-      value: "$16,840,000",
-      change: "Instant Settlement",
-      changePositive: true,
-      subtext: "SPL Token-2022 confidential liquidity pool",
+      title: "Advances Disbursed (ZK Shielded)",
+      value: totalDisbursed > 0 ? `$${totalDisbursed.toLocaleString()} USDC` : "$0.00 USDC",
+      change: totalDisbursed > 0 ? "Settled via Token-2022" : "Awaiting Transaction",
+      changePositive: totalDisbursed > 0,
+      subtext: "Confidential liquidity payout via Amatya Waterfall",
       icon: Coins,
       glowColor: "from-[#00F2FE]/20",
       borderColor: "border-[#00F2FE]/30",
     },
     {
       title: "Active Advance Rate",
-      value: "85.0%",
-      change: "T+0 Settlement",
+      value: "75.0%",
+      change: "Ashta Pradhan Cap",
       changePositive: true,
-      subtext: "Disbursed upon Rajmudra BoL telemetry proof",
+      subtext: "Statutory 75% advance, 10% dilution, 15% retainage",
       icon: Percent,
       glowColor: "from-[#14F195]/20",
       borderColor: "border-[#14F195]/30",
     },
     {
-      title: "Accumulated Protocol Yield",
-      value: "14.2% APY",
-      change: "Weighted Net",
+      title: "Live Devnet Wallet Balance",
+      value: `${balanceSol.toFixed(4)} SOL`,
+      change: "Live On-Chain",
       changePositive: true,
-      subtext: "Senior Tranche 9.4% • Junior Tranche 18.6%",
-      icon: TrendingUp,
+      subtext: "Live Solana Devnet account balance",
+      icon: ShieldCheck,
       glowColor: "from-[#9945FF]/20",
       borderColor: "border-[#9945FF]/30",
     },

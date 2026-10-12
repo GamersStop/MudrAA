@@ -25,6 +25,7 @@ pub struct InvoiceRecord {
     pub retainage_usdc: u64,
     pub total_repaid_usdc: u64,
     pub due_timestamp: i64,
+    pub last_fee_accrual_timestamp: i64,
     pub financed_at_slot: u64,
     pub status: InvoiceStatus,
     pub is_confidential: bool,

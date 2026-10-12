@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { executeProofGeneration, ProofResult } from "@/lib/zk/zk-worker";
 
+import { useWallet } from "@/context/WalletContext";
+
 interface ExporterInvoiceModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -26,6 +28,7 @@ export const ExporterInvoiceModal: React.FC<ExporterInvoiceModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { fullAddress } = useWallet();
   const [invoiceNumber, setInvoiceNumber] = useState("INV-IND-2026-095");
   const [buyerName, setBuyerName] = useState("Rotterdam Port Industrial Logistics B.V.");
   const [corridor, setCorridor] = useState("JNPT Nhava Sheva ➔ Rotterdam");
@@ -53,7 +56,7 @@ export const ExporterInvoiceModal: React.FC<ExporterInvoiceModalProps> = ({
         faceValue: amountUsdc,
         tenorDays: 60,
         secretSalt: "0x8f72a9e102bc45de89104fa39d2c189b",
-        supplierPubkey: "MudrAASupplier11111111111111111111111111111",
+        supplierPubkey: fullAddress || "11111111111111111111111111111111",
       });
       setLastProof(proofResult);
 
@@ -75,21 +78,35 @@ export const ExporterInvoiceModal: React.FC<ExporterInvoiceModalProps> = ({
         // Fallback gracefully in client-only demo mode
       }
 
+      const newInvoiceObj = {
+        id: `fac-${Date.now()}`,
+        invoiceNumber,
+        buyer: buyerName,
+        corridor,
+        goods,
+        amountUsdc,
+        advanceRate,
+        advanceAmountUsdc: advanceAmount,
+        bolNumber,
+        carrierStatus: "In Transit",
+        zkStatus: "ZK-Verified",
+        timestamp: "Just now",
+        txHash: `5K${Math.random().toString(36).substring(2, 10)}${Math.random().toString(36).substring(2, 10)}`,
+      };
+
+      try {
+        const stored = localStorage.getItem("mudraa_transactions");
+        const existing = stored ? JSON.parse(stored) : [];
+        existing.unshift(newInvoiceObj);
+        localStorage.setItem("mudraa_transactions", JSON.stringify(existing));
+        window.dispatchEvent(new Event("mudraa_transactions_updated"));
+      } catch (err) {
+        console.warn("Storage sync error:", err);
+      }
+
       setProofGenerated(true);
       if (onSuccess) {
-        onSuccess({
-          invoiceNumber,
-          buyer: buyerName,
-          corridor,
-          goods,
-          amountUsdc,
-          advanceRate,
-          advanceAmountUsdc: advanceAmount,
-          bolNumber,
-          carrierStatus: "In Transit",
-          zkStatus: "ZK-Verified",
-          timestamp: "Just now",
-        });
+        onSuccess(newInvoiceObj);
       }
 
       setTimeout(() => {

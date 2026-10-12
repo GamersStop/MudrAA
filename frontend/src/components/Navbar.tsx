@@ -7,12 +7,25 @@ import { useWallet } from "@/context/WalletContext";
 import { Wallet, ArrowUpRight, Menu, X, ExternalLink } from "lucide-react";
 
 export const Navbar: React.FC = () => {
-  const { connected, connecting, walletAddress, openWalletModal, disconnectWallet, launchApp } = useWallet();
+  const {
+    connected,
+    connecting,
+    walletAddress,
+    openWalletModal,
+    disconnectWallet,
+    launchApp,
+    isTestMode,
+    hasSelectedRole,
+    openRoleSelector,
+    userRole,
+  } = useWallet();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeLink, setActiveLink] = useState("protocol");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -97,6 +110,18 @@ export const Navbar: React.FC = () => {
             <span className="tracking-wider">MAINNET</span>
           </div>
 
+          {/* Demo Mode Role Chooser (Outside Option) */}
+          {mounted && isTestMode && !hasSelectedRole && (
+            <button
+              onClick={openRoleSelector}
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 text-[11px] font-mono hover:bg-amber-500/25 transition-all shadow-sm cursor-pointer"
+              title="Select Stakeholder Persona for Demo Evaluation"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              <span>Demo: Choose Role</span>
+            </button>
+          )}
+
           {/* Connect Wallet */}
           <button
             onClick={() => {
@@ -105,14 +130,14 @@ export const Navbar: React.FC = () => {
             }}
             disabled={connecting}
             className={`hidden sm:inline-flex items-center gap-2 px-4 py-2 text-[11px] font-body font-medium rounded-lg border transition-all duration-200 active:scale-95 cursor-pointer ${
-              connected
+              mounted && connected
                 ? "border-[#27E7A3]/40 bg-[#27E7A3]/10 text-[#27E7A3]"
                 : "border-[#18D8E8]/30 bg-[#07121E] text-[#E7EDF5] hover:border-[#18D8E8] hover:shadow-[0_0_12px_rgba(24,216,232,0.2)]"
             }`}
           >
             <Wallet className="w-3.5 h-3.5 text-[#18D8E8]" />
             <span>
-              {connecting ? "Connecting…" : connected && walletAddress ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : "Connect Wallet"}
+              {connecting ? "Connecting…" : mounted && connected && walletAddress ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : "Connect Wallet"}
             </span>
           </button>
 

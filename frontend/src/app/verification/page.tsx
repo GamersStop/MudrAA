@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { AuthGuard } from "@/components/workspace/AuthGuard";
 import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import { RajmudraStatusBar } from "@/components/workspace/RajmudraStatusBar";
 import {
@@ -108,7 +109,8 @@ export default function VerificationPortalPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#06070A] text-slate-100 font-body antialiased selection:bg-[#F59E0B]/20 selection:text-[#FCD34D] pcb-grid-bg">
+    <AuthGuard>
+      <div className="min-h-screen bg-[#06070A] text-slate-100 font-body antialiased selection:bg-[#F59E0B]/20 selection:text-[#FCD34D] pcb-grid-bg">
       <WorkspaceHeader activeTab="verification" />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -395,6 +397,7 @@ export default function VerificationPortalPage() {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </AuthGuard>
   );
 }

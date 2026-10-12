@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useWallet } from "@/context/WalletContext";
 import {
   X,
@@ -9,7 +10,8 @@ import {
   ExternalLink,
   Lock,
   ArrowRight,
-  AlertCircle,
+  Sparkles,
+  Zap,
 } from "lucide-react";
 
 interface WalletOption {
@@ -17,50 +19,52 @@ interface WalletOption {
   name: string;
   iconBg: string;
   tag: string;
-  detected: boolean;
+  isJudgeDemo?: boolean;
   description: string;
 }
 
-const WALLET_OPTIONS: WalletOption[] = [
-  {
-    id: "phantom",
-    name: "Phantom",
-    iconBg: "bg-[#AB9FF2]",
-    tag: "Popular",
-    detected: true,
-    description: "Solana standard Web3 browser extension & mobile app",
-  },
-  {
-    id: "solflare",
-    name: "Solflare",
-    iconBg: "bg-[#FC814A]",
-    tag: "Recommended",
-    detected: true,
-    description: "Institutional Solana wallet with Ledger hardware support",
-  },
-  {
-    id: "backpack",
-    name: "Backpack",
-    iconBg: "bg-[#E33E38]",
-    tag: "xNFT Native",
-    detected: true,
-    description: "Next-gen crypto wallet & decentralized app operating system",
-  },
-  {
-    id: "ledger",
-    name: "Ledger / Hardware",
-    iconBg: "bg-slate-700",
-    tag: "Cold Storage",
-    detected: false,
-    description: "Air-gapped enterprise custody & multi-sig signing",
-  },
-];
-
 export const WalletModal: React.FC = () => {
-  const { isModalOpen, closeWalletModal, connectWallet, connecting } = useWallet();
+  const { isModalOpen, closeWalletModal, connectWallet, connecting, isTestMode } = useWallet();
   const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
 
   if (!isModalOpen) return null;
+
+  // Wallet options dynamically configured based on environment testmode
+  const walletOptions: WalletOption[] = [
+    ...(isTestMode
+      ? [
+          {
+            id: "judge_demo",
+            name: "Judge Evaluation Wallet",
+            iconBg: "bg-gradient-to-br from-amber-500 to-amber-600",
+            tag: "Test Mode",
+            isJudgeDemo: true,
+            description: "Pre-authorized test account configured in .env for seamless evaluation",
+          },
+        ]
+      : []),
+    {
+      id: "phantom",
+      name: "Phantom",
+      iconBg: "bg-[#AB9FF2]",
+      tag: "Browser Wallet",
+      description: "Connect your personal Phantom wallet extension on Solana Devnet",
+    },
+    {
+      id: "solflare",
+      name: "Solflare",
+      iconBg: "bg-[#FC814A]",
+      tag: "Browser Wallet",
+      description: "Connect your Solflare extension or Ledger hardware custody",
+    },
+    {
+      id: "backpack",
+      name: "Backpack",
+      iconBg: "bg-[#E33E38]",
+      tag: "xNFT Native",
+      description: "Standard Solana xNFT wallet interface",
+    },
+  ];
 
   const handleSelect = async (wallet: WalletOption) => {
     setSelectedWalletId(wallet.id);
@@ -109,10 +113,10 @@ export const WalletModal: React.FC = () => {
             <div className="w-5 h-5 border-2 border-[#F59E0B] border-t-transparent rounded-full animate-spin shrink-0" />
             <div className="text-xs">
               <p className="font-bold text-[#FCD34D]">
-                Connecting to {selectedWalletId ? selectedWalletId.toUpperCase() : "Wallet"}...
+                Connecting {selectedWalletId ? selectedWalletId.toUpperCase() : "Wallet"}...
               </p>
               <p className="text-slate-400 font-mono text-[11px]">
-                Please approve the cryptographic connection prompt in your extension
+                Synchronizing with Solana Devnet cluster
               </p>
             </div>
           </div>
@@ -120,7 +124,7 @@ export const WalletModal: React.FC = () => {
 
         {/* Wallets List */}
         <div className="space-y-2.5 mb-6">
-          {WALLET_OPTIONS.map((wallet) => {
+          {walletOptions.map((wallet) => {
             const isSelected = selectedWalletId === wallet.id && connecting;
             return (
               <button
@@ -128,7 +132,9 @@ export const WalletModal: React.FC = () => {
                 onClick={() => handleSelect(wallet)}
                 disabled={connecting}
                 className={`w-full p-3.5 rounded-xl border text-left flex items-center justify-between transition-all duration-200 cursor-pointer group ${
-                  isSelected
+                  wallet.isJudgeDemo
+                    ? "bg-gradient-to-r from-amber-500/10 via-[#121624] to-[#121624] border-amber-500/60 hover:border-amber-400"
+                    : isSelected
                     ? "bg-[#F59E0B]/15 border-[#F59E0B]"
                     : "bg-[#11141F]/80 border-slate-800/90 hover:border-[#F59E0B]/50 hover:bg-[#151928]"
                 }`}
@@ -137,18 +143,22 @@ export const WalletModal: React.FC = () => {
                   <div
                     className={`w-10 h-10 rounded-xl ${wallet.iconBg} flex items-center justify-center text-white font-bold font-mono text-sm shadow-md group-hover:scale-105 transition-transform`}
                   >
-                    {wallet.name.slice(0, 2).toUpperCase()}
+                    {wallet.isJudgeDemo ? <Zap className="w-5 h-5 text-amber-200" /> : wallet.name.slice(0, 2).toUpperCase()}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-body text-sm font-semibold text-slate-100 group-hover:text-white">
                         {wallet.name}
                       </span>
-                      {wallet.detected && (
-                        <span className="px-1.5 py-0.5 text-[9px] font-mono uppercase bg-[#14F195]/15 border border-[#14F195]/40 text-[#14F195] rounded">
-                          {wallet.tag}
-                        </span>
-                      )}
+                      <span
+                        className={`px-1.5 py-0.5 text-[9px] font-mono uppercase rounded ${
+                          wallet.isJudgeDemo
+                            ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold"
+                            : "bg-[#14F195]/15 border border-[#14F195]/40 text-[#14F195]"
+                        }`}
+                      >
+                        {wallet.tag}
+                      </span>
                     </div>
                     <p className="text-xs text-slate-400 font-body line-clamp-1">
                       {wallet.description}
@@ -164,13 +174,36 @@ export const WalletModal: React.FC = () => {
           })}
         </div>
 
+        {/* Compliance & Terms Acknowledgment */}
+        <p className="text-[10px] font-mono text-slate-400 text-center leading-relaxed">
+          By connecting a wallet, you agree to MudrAA&apos;s{" "}
+          <Link
+            href="/terms"
+            target="_blank"
+            className="text-amber-400 hover:underline inline-flex items-center gap-0.5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link
+            href="/privacy"
+            target="_blank"
+            className="text-amber-400 hover:underline inline-flex items-center gap-0.5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Privacy &amp; Cookie Policy
+          </Link>
+          .
+        </p>
+
         {/* Footer Security Strip */}
-        <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
+        <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
           <div className="flex items-center gap-1.5 text-slate-400">
             <Lock className="w-3.5 h-3.5 text-[#14F195]" />
             <span>Non-custodial &amp; Ed25519 Verified</span>
           </div>
-          <span className="text-[#00F2FE]">Solana Devnet / Mainnet</span>
+          <span className="text-[#00F2FE]">Solana Devnet Cluster</span>
         </div>
       </div>
     </div>

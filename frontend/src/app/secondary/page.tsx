@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import { RajmudraStatusBar } from "@/components/workspace/RajmudraStatusBar";
+import { RoleAccessGuard } from "@/components/workspace/RoleAccessGuard";
+import { AuthGuard } from "@/components/workspace/AuthGuard";
 import {
   TrendingUp,
   Activity,
@@ -121,8 +123,9 @@ export default function SecondaryMarketDeskPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#06070A] text-slate-100 font-body antialiased selection:bg-[#F59E0B]/20 selection:text-[#FCD34D] pcb-grid-bg">
-      <WorkspaceHeader activeTab="secondary" />
+    <AuthGuard>
+      <div className="min-h-screen bg-[#06070A] text-slate-100 font-body antialiased selection:bg-[#F59E0B]/20 selection:text-[#FCD34D] pcb-grid-bg">
+        <WorkspaceHeader activeTab="secondary" />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Page Header */}
@@ -157,8 +160,14 @@ export default function SecondaryMarketDeskPage() {
         {/* Status Bar */}
         <RajmudraStatusBar />
 
-        {/* Top Secondary Market Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        {/* Top Secondary Market Stats with RBAC Guard */}
+        <RoleAccessGuard
+          allowedRoles={["lender", "admin"]}
+          moduleName="Secondary Debt Note Trading Desk"
+          description="Trading syndicated fractional yield debt notes is restricted to Institutional Lenders and Protocol Admins."
+        >
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div className="p-4 rounded-xl bg-[#0C0F17]/90 border border-slate-800">
             <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider block mb-1">
               Active Trade Note Listings
@@ -446,7 +455,10 @@ export default function SecondaryMarketDeskPage() {
             </div>
           </div>
         </div>
-      </main>
+      </div>
+    </RoleAccessGuard>
+  </main>
     </div>
+    </AuthGuard>
   );
 }

@@ -17,8 +17,25 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - mudraa_network
 
-  # 2. FastAPI Ingestion & ZK Relayer Service
+  # 2. Redis 7 Cache & Ingestion Queue
+  redis:
+    image: redis:7-alpine
+    container_name: mudraa_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - mudraa_network
+
+  # 3. FastAPI Ingestion & ZK Relayer Service (Multi-Stage Optimized)
   offchain-api:
     build:
       context: ./backend/offchain_service
@@ -28,36 +45,38 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://mudraa_admin:mudraa_dev_password@postgres:5432/mudraa_trade
+      DATABASE_URL: postgresql+asyncpg://mudraa_admin:mudraa_dev_password@postgres:5432/mudraa_trade
+      REDIS_URL: redis://redis:6379/0
       PORT: "8000"
     ports:
       - "8000:8000"
     volumes:
       - ./backend/offchain_service:/app
+    networks:
+      - mudraa_network
 
-  # 3. Next.js Enterprise Frontend
+  # 4. Next.js 15 Institutional Portal (Multi-Stage Standalone)
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: mudraa_frontend
     restart: always
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
+    depends_on:
+      - offchain-api
     environment:
       - HOSTNAME=0.0.0.0
       - PORT=3000
-      - WATCHPACK_POLLING=true
       - NEXT_PUBLIC_API_URL=http://localhost:8000
     ports:
       - "3000:3000"
-    command: npm run dev
+    networks:
+      - mudraa_network
 
-  # 4. Solana Anchor Toolchain Workspace (Optional Profile)
+  # 5. Solana Anchor Toolchain Workspace (Devnet Profile)
   anchor-builder:
     image: hogyzen12/anchor-docker:latest
     container_name: mudraa_anchor
@@ -68,6 +87,12 @@ services:
     tty: true
     profiles:
       - toolchain
+    networks:
+      - mudraa_network
+
+networks:
+  mudraa_network:
+    driver: bridge
 
 volumes:
   pgdata:

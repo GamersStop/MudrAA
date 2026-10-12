@@ -16,6 +16,7 @@ from api.v1.invoices import router as invoices_router
 from api.v1.legal import router as legal_router
 from api.v1.compliance import router as compliance_router
 from api.v1.oracles import router as oracles_router
+from core.security import SecurityHeadersMiddleware, RateLimitAndCSRFMiddleware
 
 
 @asynccontextmanager
@@ -48,6 +49,10 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept"],
 )
+
+# Enforce security headers & CSRF/Rate-limiting guardrails
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimitAndCSRFMiddleware, allowed_origins=allowed_origins)
 
 # Register Subsystem Routers
 app.include_router(invoices_router, prefix="/api/v1/trade")

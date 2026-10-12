@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use crate::errors::MudraaError;
-use crate::state::{InvoiceRecord, SyndicateDebtVault};
+use crate::state::{InvoiceRecord, SyndicateDebtVault, InvestorDebtShareRecord};
 
 #[derive(Accounts)]
 #[instruction(invoice_id_hash: [u8; 32])]
@@ -19,6 +19,15 @@ pub struct MintSyndicateDebtNotes<'info> {
         bump
     )]
     pub syndicate_vault: Account<'info, SyndicateDebtVault>,
+
+    #[account(
+        init_if_needed,
+        payer = investor,
+        space = 8 + InvestorDebtShareRecord::INIT_SPACE,
+        seeds = [b"debt_share", invoice_id_hash.as_ref(), investor.key().as_ref()],
+        bump
+    )]
+    pub investor_share_record: Account<'info, InvestorDebtShareRecord>,
 
     #[account(mut)]
     pub investor: Signer<'info>,
@@ -67,6 +76,20 @@ pub fn handler(
         .checked_add(shares_to_mint)
         .ok_or(MudraaError::MathOverflow)?;
     vault.bump = ctx.bumps.syndicate_vault;
+
+    // Record per-investor ownership in dedicated PDA
+    let investor_record = &mut ctx.accounts.investor_share_record;
+    investor_record.invoice_id_hash = invoice_id_hash;
+    investor_record.investor = ctx.accounts.investor.key();
+    investor_record.shares_owned = investor_record
+        .shares_owned
+        .checked_add(shares_to_mint)
+        .ok_or(MudraaError::MathOverflow)?;
+    investor_record.total_usdc_invested = investor_record
+        .total_usdc_invested
+        .checked_add(deposit_amount_usdc)
+        .ok_or(MudraaError::MathOverflow)?;
+    investor_record.bump = ctx.bumps.investor_share_record;
 
     msg!(
         "Amatya Syndication: Minted {} fractional debt note shares for investor {}. Total pool: {} USDC",

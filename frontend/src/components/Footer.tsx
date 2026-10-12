@@ -7,10 +7,12 @@ import { ExternalLink } from "lucide-react";
 
 export const Footer: React.FC = () => {
   const links = [
-    { label: "Protocol", href: "#problem" },
-    { label: "Architecture", href: "#architecture" },
-    { label: "Governance", href: "#governance" },
-    { label: "Ecosystem", href: "#product" },
+    { label: "Protocol", href: "/#problem" },
+    { label: "Architecture", href: "/#architecture" },
+    { label: "Governance", href: "/#governance" },
+    { label: "Ecosystem", href: "/#product" },
+    { label: "Terms", href: "/terms", internal: true },
+    { label: "Privacy & Cookies", href: "/privacy", internal: true },
     { label: "Docs", href: "https://github.com/MudrAA", external: true },
   ];
 
@@ -40,18 +42,28 @@ export const Footer: React.FC = () => {
 
         {/* Center: Navigation Links */}
         <nav className="flex flex-wrap items-center justify-center gap-6 text-slate-400">
-          {links.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              target={link.external ? "_blank" : undefined}
-              rel={link.external ? "noreferrer" : undefined}
-              className="hover:text-white transition-colors flex items-center gap-1"
-            >
-              <span>{link.label}</span>
-              {link.external && <ExternalLink className="w-2.5 h-2.5 opacity-60" />}
-            </a>
-          ))}
+          {links.map((link) =>
+            link.internal ? (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="hover:text-white transition-colors flex items-center gap-1"
+              >
+                <span>{link.label}</span>
+              </Link>
+            ) : (
+              <a
+                key={link.label}
+                href={link.href}
+                target={link.external ? "_blank" : undefined}
+                rel={link.external ? "noreferrer" : undefined}
+                className="hover:text-white transition-colors flex items-center gap-1"
+              >
+                <span>{link.label}</span>
+                {link.external && <ExternalLink className="w-2.5 h-2.5 opacity-60" />}
+              </a>
+            )
+          )}
         </nav>
 
         {/* Right: Social Links & Copyright */}

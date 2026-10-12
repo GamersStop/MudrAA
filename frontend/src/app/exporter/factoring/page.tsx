@@ -5,6 +5,9 @@ import Link from "next/link";
 import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import { RajmudraStatusBar } from "@/components/workspace/RajmudraStatusBar";
 import { executeProofGeneration, ProofResult } from "@/lib/zk/zk-worker";
+import { useWallet } from "@/context/WalletContext";
+import { RoleAccessGuard } from "@/components/workspace/RoleAccessGuard";
+import { AuthGuard } from "@/components/workspace/AuthGuard";
 import {
   UploadCloud,
   FileCode,
@@ -88,6 +91,7 @@ const PRESET_INVOICES: SampleInvoice[] = [
 ];
 
 export default function ExporterFactoringStation() {
+  const { fullAddress } = useWallet();
   const [selectedPreset, setSelectedPreset] = useState<SampleInvoice>(PRESET_INVOICES[0]);
   const [advanceRate, setAdvanceRate] = useState<number>(0.75); // 75% standard protocol limit
   const [confidentialDisbursement, setConfidentialDisbursement] = useState<boolean>(true);
@@ -137,7 +141,7 @@ export default function ExporterFactoringStation() {
         faceValue: selectedPreset.faceValue,
         tenorDays: selectedPreset.tenorDays,
         secretSalt: "0x" + selectedPreset.canonicalHash.slice(2, 34),
-        supplierPubkey: "MudrAASupplier11111111111111111111111111111",
+        supplierPubkey: fullAddress || "11111111111111111111111111111111",
       });
 
       setZkProofResult(result);
@@ -158,12 +162,40 @@ export default function ExporterFactoringStation() {
   const handleSignAndDisburse = async () => {
     setWorkflowStep("signing");
     await new Promise((r) => setTimeout(r, 1400));
+
+    // Record the live completed factoring transaction to persistent storage
+    try {
+      const stored = localStorage.getItem("mudraa_transactions");
+      const existing = stored ? JSON.parse(stored) : [];
+      const newTx = {
+        id: `fac-${Date.now()}`,
+        invoiceNumber: selectedPreset.name.split(" ")[0],
+        buyer: selectedPreset.buyerId,
+        corridor: selectedPreset.corridor,
+        goods: selectedPreset.goods,
+        amountUsdc: selectedPreset.faceValue,
+        advanceRate: advanceRate,
+        advanceAmountUsdc: Math.round(selectedPreset.faceValue * advanceRate),
+        bolNumber: selectedPreset.bolNumber,
+        carrierStatus: "In Transit",
+        zkStatus: "Settled",
+        timestamp: "Just now",
+        txHash: `5K${Math.random().toString(36).substring(2, 10)}${Math.random().toString(36).substring(2, 10)}`,
+      };
+      existing.unshift(newTx);
+      localStorage.setItem("mudraa_transactions", JSON.stringify(existing));
+      window.dispatchEvent(new Event("mudraa_transactions_updated"));
+    } catch (e) {
+      console.warn("Storage sync notice:", e);
+    }
+
     setWorkflowStep("confirmed");
   };
 
   return (
-    <div className="min-h-screen bg-[#06070A] text-slate-100 font-body antialiased selection:bg-[#F59E0B]/20 selection:text-[#FCD34D] pcb-grid-bg">
-      <WorkspaceHeader activeTab="factoring" />
+    <AuthGuard>
+      <div className="min-h-screen bg-[#06070A] text-slate-100 font-body antialiased selection:bg-[#F59E0B]/20 selection:text-[#FCD34D] pcb-grid-bg">
+        <WorkspaceHeader activeTab="factoring" />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Top Header */}
@@ -195,10 +227,15 @@ export default function ExporterFactoringStation() {
         {/* Status Bar */}
         <RajmudraStatusBar />
 
-        {/* Main Factoring Workflow Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Column: Preset Selector & Oracle Validations */}
-          <div className="lg:col-span-7 space-y-6">
+        {/* Main Factoring Workflow Grid with RBAC Guard */}
+        <RoleAccessGuard
+          allowedRoles={["exporter", "admin"]}
+          moduleName="Exporter Factoring Station"
+          description="Receivable verification, client-side zero-knowledge proof generation, and Token-2022 advance disbursements are restricted to verified Factories / Exporters and Protocol Admins."
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left Column: Preset Selector & Oracle Validations */}
+            <div className="lg:col-span-7 space-y-6">
             {/* 1. Select / Upload Invoice Box */}
             <div className="rounded-2xl bg-[#0C0F17]/95 border border-slate-800 p-5 sm:p-6 backdrop-blur-md shadow-2xl space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
@@ -484,7 +521,9 @@ export default function ExporterFactoringStation() {
             </div>
           </div>
         </div>
+      </RoleAccessGuard>
       </main>
     </div>
+    </AuthGuard>
   );
 }

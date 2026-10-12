@@ -124,7 +124,6 @@ template InvoiceVerifier() {
     signal input faceValue;       // Invoice Face Value in base units (e.g. 6 decimal places)
     signal input tenorDays;       // Invoice Tenor in days (e.g. 60)
     signal input secretSalt;      // 256-bit blinding entropy
-    signal input supplierPubkey;  // Exporter Solana wallet public key (as field element)
 
     // ----------------------------------------------------------------
     // 2. PUBLIC INPUTS (Published to Solana L1 and verified on-chain)
@@ -133,6 +132,7 @@ template InvoiceVerifier() {
     signal input invoiceCommitment;  // Published commitment hash
     signal input minFaceValue;       // Protocol minimum financing limit
     signal input maxTenorDays;       // Protocol maximum credit tenor (e.g. 180 days)
+    signal input supplierPubkey;     // Exporter Solana wallet public key (binds proof to signer, defeating front-running)
 
     // ----------------------------------------------------------------
     // 3. DEFENSIVE RANGE CHECKS (Threat B.1 Mitigation)
@@ -182,4 +182,4 @@ template InvoiceVerifier() {
     nullifierHasher.out === nullifierHash;
 }
 
-component main {public [nullifierHash, invoiceCommitment, minFaceValue, maxTenorDays]} = InvoiceVerifier();
+component main {public [nullifierHash, invoiceCommitment, minFaceValue, maxTenorDays, supplierPubkey]} = InvoiceVerifier();
