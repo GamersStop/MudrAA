@@ -30,6 +30,7 @@ export interface FactoringRequest {
   zkStatus: "ZK-Verified" | "Verifying" | "Settled";
   timestamp: string;
   txHash?: string;
+  currency?: "SOL" | "USDC";
 }
 
 interface FactoringRequestsTableProps {
@@ -210,10 +211,10 @@ export const FactoringRequestsTable: React.FC<FactoringRequestsTableProps> = ({
                     <div className="text-[11px] text-slate-400 truncate max-w-[200px]">{r.goods}</div>
                   </td>
                   <td className="py-3.5 text-right font-bold text-white">
-                    ${r.amountUsdc.toLocaleString()} USDC
+                    {r.currency === "SOL" ? `${r.amountUsdc} SOL` : `$${r.amountUsdc.toLocaleString()} USDC`}
                   </td>
                   <td className="py-3.5 text-right font-bold text-[#14F195]">
-                    ${r.advanceAmountUsdc.toLocaleString()} USDC
+                    {r.currency === "SOL" ? `${r.advanceAmountUsdc} SOL` : `$${r.advanceAmountUsdc.toLocaleString()} USDC`}
                   </td>
                   <td className="py-3.5">
                     <div className="text-slate-300 flex items-center gap-1.5">
@@ -271,12 +272,18 @@ export const FactoringRequestsTable: React.FC<FactoringRequestsTableProps> = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Face Value:</span>
-                <span className="text-white">${selectedReceipt.amountUsdc.toLocaleString()} USDC</span>
+                <span className="text-white">
+                  {selectedReceipt.currency === "SOL"
+                    ? `${selectedReceipt.amountUsdc} SOL`
+                    : `$${selectedReceipt.amountUsdc.toLocaleString()} USDC`}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Advance (75% Cap):</span>
                 <span className="text-[#14F195] font-bold">
-                  ${selectedReceipt.advanceAmountUsdc.toLocaleString()} USDC
+                  {selectedReceipt.currency === "SOL"
+                    ? `${selectedReceipt.advanceAmountUsdc} SOL`
+                    : `$${selectedReceipt.advanceAmountUsdc.toLocaleString()} USDC`}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -291,12 +298,26 @@ export const FactoringRequestsTable: React.FC<FactoringRequestsTableProps> = ({
                 <span className="text-slate-400">Status:</span>
                 <span className="text-[#14F195]">{selectedReceipt.zkStatus}</span>
               </div>
+              {selectedReceipt.txHash && (
+                <div className="pt-2 border-t border-slate-800/80 flex justify-between items-center">
+                  <span className="text-slate-400">Solana Devnet:</span>
+                  <a
+                    href={`https://explorer.solana.com/tx/${selectedReceipt.txHash}?cluster=devnet`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[#00F2FE] hover:underline flex items-center gap-1 font-bold text-[11px]"
+                  >
+                    <span>{selectedReceipt.txHash.slice(0, 8)}...{selectedReceipt.txHash.slice(-6)}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
             </div>
 
             <div className="pt-2 border-t border-slate-800 flex justify-end">
               <button
                 onClick={() => setSelectedReceipt(null)}
-                className="px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white"
+                className="px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
               >
                 Close
               </button>
