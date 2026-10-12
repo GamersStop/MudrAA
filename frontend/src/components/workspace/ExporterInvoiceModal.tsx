@@ -67,7 +67,7 @@ export const ExporterInvoiceModal: React.FC<ExporterInvoiceModalProps> = ({
       const proofResult = executeProofGeneration({
         taxId: "27AABCS1429B1Z0",
         buyerId: buyerName.slice(0, 16),
-        faceValue: Math.round(currency === "SOL" ? amount * 150 : amount), // Normalized to unit value
+        faceValue: amount,
         tenorDays: 60,
         secretSalt: "0x8f72a9e102bc45de89104fa39d2c189b",
         supplierPubkey: fullAddress || "11111111111111111111111111111111",
