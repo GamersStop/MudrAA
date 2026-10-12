@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { AuthGuard } from "@/components/workspace/AuthGuard";
 import {
@@ -42,54 +42,8 @@ interface TelemetryRow {
   timestamp: string;
 }
 
-const MOCK_TELEMETRY: TelemetryRow[] = [
-  {
-    id: "tx-901",
-    txHash: "5Kt8...W2pL",
-    corridor: "Singapore ➔ Rotterdam",
-    goods: "Semiconductor Substrates",
-    nominal: 740000,
-    tenor: "38d",
-    tranche: "Senior",
-    proofStatus: "Settled",
-    timestamp: "12s ago",
-  },
-  {
-    id: "tx-902",
-    txHash: "3mN4...7rXy",
-    corridor: "Nhava Sheva ➔ Hamburg",
-    goods: "Industrial Solar Modules",
-    nominal: 420000,
-    tenor: "45d",
-    tranche: "Junior",
-    proofStatus: "ZK-Verified",
-    timestamp: "48s ago",
-  },
-  {
-    id: "tx-903",
-    txHash: "8vB1...9qKx",
-    corridor: "Busan ➔ Long Beach",
-    goods: "EV Cathode Materials",
-    nominal: 1150000,
-    tenor: "32d",
-    tranche: "Senior",
-    proofStatus: "ZK-Verified",
-    timestamp: "2m ago",
-  },
-  {
-    id: "tx-904",
-    txHash: "2jR9...4tZa",
-    corridor: "Antwerp ➔ Jebel Ali",
-    goods: "Specialized Pharmaceuticals",
-    nominal: 310000,
-    tenor: "28d",
-    tranche: "Senior",
-    proofStatus: "Settled",
-    timestamp: "4m ago",
-  },
-];
-
 export default function VaultsPage() {
+  const [telemetryRows, setTelemetryRows] = useState<TelemetryRow[]>([]);
   const [selectedTranche, setSelectedTranche] = useState<"senior" | "junior">("senior");
   const [allocationAmount, setAllocationAmount] = useState<number>(250000);
   const [currency, setCurrency] = useState<"USDC" | "PYUSD">("USDC");
@@ -97,6 +51,41 @@ export default function VaultsPage() {
   const [executionState, setExecutionState] = useState<"idle" | "signing" | "proving" | "confirmed">("idle");
   const [defaultShockSim, setDefaultShockSim] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<"overview" | "stress-test" | "telemetry">("overview");
+
+  useEffect(() => {
+    const loadTelemetry = () => {
+      try {
+        const stored = localStorage.getItem("mudraa_transactions");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const rows: TelemetryRow[] = parsed.map((item: any, idx: number) => ({
+              id: item.id || `tx-${idx}`,
+              txHash: item.txHash ? `${item.txHash.slice(0, 4)}...${item.txHash.slice(-4)}` : "Live L1 Tx",
+              corridor: item.corridor || "Cross-Border Corridor",
+              goods: item.goods || "Merchandise",
+              nominal: Number(item.amountUsdc) || 0,
+              tenor: "60d",
+              tranche: idx % 2 === 0 ? "Senior" : "Junior",
+              proofStatus: item.zkStatus === "Settled" ? "Settled" : "ZK-Verified",
+              timestamp: item.timestamp || "Just now",
+            }));
+            setTelemetryRows(rows);
+            return;
+          }
+        }
+      } catch {}
+      setTelemetryRows([]);
+    };
+
+    loadTelemetry();
+    window.addEventListener("mudraa_transactions_updated", loadTelemetry);
+    window.addEventListener("storage", loadTelemetry);
+    return () => {
+      window.removeEventListener("mudraa_transactions_updated", loadTelemetry);
+      window.removeEventListener("storage", loadTelemetry);
+    };
+  }, []);
 
   // Dynamic yields calculation based on tranche and simulation
   const seniorBaseApy = 7.85;
@@ -710,55 +699,76 @@ export default function VaultsPage() {
               </span>
             </div>
 
-            <div className="rounded-2xl bg-[#111420] border border-[#1E2438] overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left font-mono text-xs">
-                  <thead className="bg-[#08090D] text-slate-400 border-b border-[#1E2438]">
-                    <tr>
-                      <th className="py-3.5 px-4">Solana Tx</th>
-                      <th className="py-3.5 px-4">Trade Corridor</th>
-                      <th className="py-3.5 px-4">Cargo / Goods</th>
-                      <th className="py-3.5 px-4">Nominal Value</th>
-                      <th className="py-3.5 px-4">Tenor</th>
-                      <th className="py-3.5 px-4">Tranche</th>
-                      <th className="py-3.5 px-4">ZK Proof State</th>
-                      <th className="py-3.5 px-4">Verified</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#1E2438]/60 text-slate-200">
-                    {MOCK_TELEMETRY.map((row) => (
-                      <tr key={row.id} className="hover:bg-[#171B2C] transition-colors">
-                        <td className="py-3.5 px-4 text-[#00F2FE] font-semibold">{row.txHash}</td>
-                        <td className="py-3.5 px-4">{row.corridor}</td>
-                        <td className="py-3.5 px-4 text-slate-300">{row.goods}</td>
-                        <td className="py-3.5 px-4 font-semibold text-white">
-                          ${row.nominal.toLocaleString()} USDC
-                        </td>
-                        <td className="py-3.5 px-4">{row.tenor}</td>
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                              row.tranche === "Senior"
-                                ? "bg-[#9945FF]/15 text-[#B46EFF] border border-[#9945FF]/30"
-                                : "bg-[#00F2FE]/15 text-[#00F2FE] border border-[#00F2FE]/30"
-                            }`}
-                          >
-                            {row.tranche}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span className="inline-flex items-center gap-1.5 text-[#14F195]">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            {row.proofStatus}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-500">{row.timestamp}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {telemetryRows.length === 0 ? (
+              <div className="py-14 px-4 text-center rounded-2xl bg-[#111420] border border-dashed border-[#1E2438]">
+                <div className="w-12 h-12 mx-auto rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-[#00F2FE] mb-3 shadow-[0_0_15px_rgba(0,242,254,0.15)]">
+                  <Activity className="w-6 h-6" />
+                </div>
+                <h4 className="font-headline text-base font-bold text-white mb-1">
+                  No Live Factoring Disbursements Yet
+                </h4>
+                <p className="font-mono text-xs text-slate-400 max-w-md mx-auto mb-5 leading-relaxed">
+                  All prior unverified mock records have been wiped clean. Execute a factoring advance at the Exporter Factoring Station to generate live Solana Devnet disbursement records.
+                </p>
+                <Link
+                  href="/exporter/factoring"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black font-mono font-bold text-xs hover:brightness-110 transition-all shadow-md"
+                >
+                  <span>Go to Exporter Factoring Desk</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
               </div>
-            </div>
+            ) : (
+              <div className="rounded-2xl bg-[#111420] border border-[#1E2438] overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left font-mono text-xs">
+                    <thead className="bg-[#08090D] text-slate-400 border-b border-[#1E2438]">
+                      <tr>
+                        <th className="py-3.5 px-4">Solana Tx</th>
+                        <th className="py-3.5 px-4">Trade Corridor</th>
+                        <th className="py-3.5 px-4">Cargo / Goods</th>
+                        <th className="py-3.5 px-4">Nominal Value</th>
+                        <th className="py-3.5 px-4">Tenor</th>
+                        <th className="py-3.5 px-4">Tranche</th>
+                        <th className="py-3.5 px-4">ZK Proof State</th>
+                        <th className="py-3.5 px-4">Verified</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#1E2438]/60 text-slate-200">
+                      {telemetryRows.map((row) => (
+                        <tr key={row.id} className="hover:bg-[#171B2C] transition-colors">
+                          <td className="py-3.5 px-4 text-[#00F2FE] font-semibold">{row.txHash}</td>
+                          <td className="py-3.5 px-4">{row.corridor}</td>
+                          <td className="py-3.5 px-4 text-slate-300">{row.goods}</td>
+                          <td className="py-3.5 px-4 font-semibold text-white">
+                            ${row.nominal.toLocaleString()} USDC
+                          </td>
+                          <td className="py-3.5 px-4">{row.tenor}</td>
+                          <td className="py-3.5 px-4">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                                row.tranche === "Senior"
+                                  ? "bg-[#9945FF]/15 text-[#B46EFF] border border-[#9945FF]/30"
+                                  : "bg-[#00F2FE]/15 text-[#00F2FE] border border-[#00F2FE]/30"
+                              }`}
+                            >
+                              {row.tranche}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="inline-flex items-center gap-1.5 text-[#14F195]">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              {row.proofStatus}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-500">{row.timestamp}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>

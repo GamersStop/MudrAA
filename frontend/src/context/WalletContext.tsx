@@ -176,6 +176,13 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   // Initialize: Check stored role, session storage, or conditionally auto-connect if TEST_MODE is enabled in env
   useEffect(() => {
     try {
+      // Clear all unverified transactions up to date so session reflects 0 unproven records
+      if (typeof window !== "undefined" && !localStorage.getItem("mudraa_tx_purged_devnet_v1")) {
+        localStorage.removeItem("mudraa_transactions");
+        localStorage.setItem("mudraa_tx_purged_devnet_v1", "true");
+        window.dispatchEvent(new Event("mudraa_transactions_updated"));
+      }
+
       // Check if user has already confirmed their demo role
       const confirmed = localStorage.getItem("mudraa_role_confirmed") === "true";
       setHasSelectedRole(confirmed);
