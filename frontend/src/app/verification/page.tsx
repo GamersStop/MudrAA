@@ -24,6 +24,8 @@ import {
   Wallet,
   Loader2,
 } from "lucide-react";
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { useWallet } from "@/context/WalletContext";
 
 export interface VerificationRecord {
   nullifierHash: string;
@@ -48,10 +50,15 @@ export interface VerificationRecord {
   isUserLive?: boolean;
 }
 
-// Wallet 1: Admin & Explorer (Auditor)
-const ADMIN_EXPLORER_WALLET = "AzHZTAXadh8vBmT9SUQrqq1bKsMUjQaXacArWZZnyiJ8";
-// Wallet 2: Factory & LP (Lender)
-const FACTORY_LP_WALLET = "C3CBRnk4xg9up53McWMNSYFMAYrUctGm2eWdvM4gipvP";
+// Wallet 1: Admin & Explorer (Citadel & Auditor)
+const ADMIN_EXPLORER_WALLET =
+  process.env.NEXT_PUBLIC_DEMO_WALLET_ADDRESS || "AzHZTAXadh8vBmT9SUQrqq1bKsMUjQaXacArWZZnyiJ8";
+// Wallet 2: Factory & LP (Lender / Debit)
+const FACTORY_LP_WALLET =
+  process.env.NEXT_PUBLIC_LP_WALLET_ADDRESS || "C3CBRnk4xg9up53McWMNSYFMAYrUctGm2eWdvM4gipvP";
+// Wallet 3: Factory & Global Exporter (Credit)
+const EXPORTER_WALLET =
+  process.env.NEXT_PUBLIC_EXPORTER_WALLET_ADDRESS || "4215yZFmakPLePKXqYVqcBmVJHMK6SLfmJGW8h3UgQfG";
 
 function deriveProofForQuery(query: string): VerificationRecord {
   const clean = query.trim();
@@ -89,12 +96,56 @@ function deriveProofForQuery(query: string): VerificationRecord {
 }
 
 export default function VerificationPortalPage() {
+  const { balanceSol, fullAddress } = useWallet();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeRecord, setActiveRecord] = useState<VerificationRecord | null>(null);
   const [userRecords, setUserRecords] = useState<Record<string, VerificationRecord>>({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isInspecting, setIsInspecting] = useState<boolean>(false);
   const [inspectionFeedback, setInspectionFeedback] = useState<string | null>(null);
+  const [walletBalances, setWalletBalances] = useState<{
+    exporter: number | null;
+    lp: number | null;
+    admin: number | null;
+  }>({
+    exporter: null,
+    lp: null,
+    admin: null,
+  });
+
+  // Softcode: Fetch live on-chain balances dynamically from Solana Devnet RPC
+  useEffect(() => {
+    let isCancelled = false;
+    const fetchLiveBalances = async () => {
+      try {
+        const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com";
+        const connection = new Connection(rpcUrl, "confirmed");
+
+        const [adminBal, lpBal, expBal] = await Promise.allSettled([
+          connection.getBalance(new PublicKey(ADMIN_EXPLORER_WALLET)),
+          connection.getBalance(new PublicKey(FACTORY_LP_WALLET)),
+          connection.getBalance(new PublicKey(EXPORTER_WALLET)),
+        ]);
+
+        if (!isCancelled) {
+          setWalletBalances({
+            admin: adminBal.status === "fulfilled" ? adminBal.value / LAMPORTS_PER_SOL : null,
+            lp: lpBal.status === "fulfilled" ? lpBal.value / LAMPORTS_PER_SOL : null,
+            exporter: expBal.status === "fulfilled" ? expBal.value / LAMPORTS_PER_SOL : null,
+          });
+        }
+      } catch (err) {
+        console.warn("Could not fetch live RPC balances for verification desk:", err);
+      }
+    };
+
+    fetchLiveBalances();
+    const interval = setInterval(fetchLiveBalances, 15000);
+    return () => {
+      isCancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
 
   // Load user-submitted invoices from localStorage
   const loadStoredProofs = () => {
@@ -253,60 +304,106 @@ export default function VerificationPortalPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-              {/* Factory & LP Wallet (Debit) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
+              {/* 1. Factory & Exporter Wallet (Credit) */}
+              <div className="p-4 rounded-xl bg-[#0F1424] border border-emerald-500/30 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-emerald-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
+                    <Wallet className="w-3.5 h-3.5" />
+                    Factory &amp; Exporter (Credit)
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
+                    CREDIT {walletBalances.exporter !== null
+                      ? `${walletBalances.exporter.toFixed(4)} SOL`
+                      : fullAddress === EXPORTER_WALLET && balanceSol > 0
+                      ? `${balanceSol.toFixed(4)} SOL`
+                      : "3.0000 SOL"}
+                  </span>
+                </div>
+                <div className="text-white font-bold break-all bg-black/40 p-2 rounded border border-slate-800 flex items-center justify-between">
+                  <span className="truncate max-w-[200px]" title={EXPORTER_WALLET}>
+                    {EXPORTER_WALLET}
+                  </span>
+                  <a
+                    href={`https://explorer.solana.com/address/${EXPORTER_WALLET}?cluster=devnet`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-1 hover:text-emerald-400 text-slate-400 transition-colors shrink-0 ml-2"
+                    title="View Factory & Exporter Wallet on Solana Explorer"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+                <p className="text-[10px] text-slate-400">
+                  Receives factoring advance credits directly on Solana Devnet upon Groth16 ZK proof verification.
+                </p>
+              </div>
+
+              {/* 2. Institutional LP Wallet (Debit) */}
               <div className="p-4 rounded-xl bg-[#0F1424] border border-cyan-500/30 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] text-cyan-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
                     <Wallet className="w-3.5 h-3.5" />
-                    Factory &amp; LP Wallet (Debit Account)
+                    Institutional LP (Debit)
                   </span>
                   <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 text-[10px] font-bold">
-                    DEBIT 5.0 SOL
+                    DEBIT {walletBalances.lp !== null
+                      ? `${walletBalances.lp.toFixed(4)} SOL`
+                      : fullAddress === FACTORY_LP_WALLET && balanceSol > 0
+                      ? `${balanceSol.toFixed(4)} SOL`
+                      : "5.0000 SOL"}
                   </span>
                 </div>
                 <div className="text-white font-bold break-all bg-black/40 p-2 rounded border border-slate-800 flex items-center justify-between">
-                  <span>{FACTORY_LP_WALLET}</span>
+                  <span className="truncate max-w-[200px]" title={FACTORY_LP_WALLET}>
+                    {FACTORY_LP_WALLET}
+                  </span>
                   <a
                     href={`https://explorer.solana.com/address/${FACTORY_LP_WALLET}?cluster=devnet`}
                     target="_blank"
                     rel="noreferrer"
                     className="p-1 hover:text-cyan-400 text-slate-400 transition-colors shrink-0 ml-2"
-                    title="View Factory & LP Wallet on Solana Explorer"
+                    title="View Institutional LP Wallet on Solana Explorer"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 </div>
                 <p className="text-[10px] text-slate-400">
-                  Used by Factory (exporter advances) and Institutional LP to disburse capital upon Groth16 verification.
+                  Funds factoring advances and deploys liquidity into Senior &amp; Junior Underwriting Vaults.
                 </p>
               </div>
 
-              {/* Admin & Explorer Wallet (Credit) */}
+              {/* 3. Admin & Approver / Citadel (Protocol Custody) */}
               <div className="p-4 rounded-xl bg-[#0F1424] border border-amber-500/30 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] text-amber-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
                     <Wallet className="w-3.5 h-3.5" />
-                    Admin &amp; Explorer Wallet (Credit Account)
+                    Admin Citadel (Approver)
                   </span>
                   <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">
-                    CREDIT 15.0 SOL
+                    CITADEL {walletBalances.admin !== null
+                      ? `${walletBalances.admin.toFixed(4)} SOL`
+                      : fullAddress === ADMIN_EXPLORER_WALLET && balanceSol > 0
+                      ? `${balanceSol.toFixed(4)} SOL`
+                      : "12.0250 SOL"}
                   </span>
                 </div>
                 <div className="text-white font-bold break-all bg-black/40 p-2 rounded border border-slate-800 flex items-center justify-between">
-                  <span>{ADMIN_EXPLORER_WALLET}</span>
+                  <span className="truncate max-w-[200px]" title={ADMIN_EXPLORER_WALLET}>
+                    {ADMIN_EXPLORER_WALLET}
+                  </span>
                   <a
                     href={`https://explorer.solana.com/address/${ADMIN_EXPLORER_WALLET}?cluster=devnet`}
                     target="_blank"
                     rel="noreferrer"
                     className="p-1 hover:text-amber-400 text-slate-400 transition-colors shrink-0 ml-2"
-                    title="View Admin & Explorer Wallet on Solana Explorer"
+                    title="View Admin Citadel Wallet on Solana Explorer"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 </div>
                 <p className="text-[10px] text-slate-400">
-                  Used by Peshawa Sovereign Admin and Compliance Auditor to receive disbursements and audit commitments.
+                  Peshawa Sovereign Citadel holding reserve buffers, circuit breakers, and ZK verification keys.
                 </p>
               </div>
             </div>

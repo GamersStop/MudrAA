@@ -13,6 +13,7 @@
 <br />
 
 [![GitHub](https://img.shields.io/badge/GitHub-GamersStop%2FMudrAA-181717.svg?logo=github)](https://github.com/GamersStop/MudrAA)
+[![Vercel Deployment](https://img.shields.io/badge/Live%20App-mudr--aa.vercel.app-000000.svg?logo=vercel)](https://mudr-aa.vercel.app/)
 [![Solana](https://img.shields.io/badge/Solana-Devnet%20%7C%20Mainnet-14F195.svg?logo=solana)](https://solana.com)
 [![Anchor](https://img.shields.io/badge/Anchor-0.30.1-blue.svg)](https://coral-xyz.github.io/anchor/)
 [![Token-2022](https://img.shields.io/badge/SPL%20Token--2022-Transfer%20Hook%20KYB-9945FF.svg)](https://spl.solana.com/token-2022)
@@ -108,7 +109,7 @@ MudrAA includes a built-in **Multi-Wallet Evaluation Architecture** with three p
 ### Live Debit & Credit Verification Runbook
 
 1. **Option A: Test Factory / Exporter Factoring (Cash Advance Drawdown)**:
-   - Launch the portal at [http://localhost:3000](http://localhost:3000).
+   - Launch the portal at [https://mudr-aa.vercel.app/](https://mudr-aa.vercel.app/) (or local [http://localhost:3000](http://localhost:3000)).
    - Click **"Connect Wallet"** &rarr; Select **"Factory & Exporter Wallet"** (`4215yZFm...`).
    - Click **"Register Invoice"** (auto-fills canonical Peppol BIS 3.0 data or drop XML).
    - Click **"Generate Rajmudra Proof & Submit"**.

@@ -3,6 +3,9 @@
           Sovereign Trade Liquidity & Verification Engine on Solana L1
                  Powered by the Rajmudra Verification Engine
 ================================================================================
+LIVE PRODUCTION DEPLOYMENT: https://mudr-aa.vercel.app/
+GITHUB REPOSITORY:          https://github.com/GamersStop/MudrAA
+================================================================================
 
 TABLE OF CONTENTS
 --------------------------------------------------------------------------------
@@ -237,10 +240,11 @@ PRODUCTION MAINNET-BETA ARCHITECTURE:
 To execute a live end-to-end evaluation:
 
 Step 1: Open the Frontend Portal
-- Navigate to: http://localhost:3000
+- Live Cloud Deployment: https://mudr-aa.vercel.app/
+- Or Local Instance:     http://localhost:3000
 
 Step 2: Connect as Factory & Exporter
-- Click "Connect Wallet" -> Select "Factory & Exporter Wallet" (3.0 SOL).
+- Click "Connect Wallet" -> Select "Factory & Exporter Wallet" (~3.0 SOL).
 - Notice your active persona is Factory / Exporter (4215yZFm...).
 - Click "Register Invoice" -> Use auto-filled Peppol BIS 3.0 details or upload XML.
 - Click "Generate Rajmudra Proof & Submit".
@@ -248,13 +252,15 @@ Step 2: Connect as Factory & Exporter
 - Click "View on Solana Explorer" -> Observe LP debited and Exporter credited!
 
 Step 3: Connect as Institutional Lender (LP)
-- Click wallet menu -> "Sign Out" -> Connect "Institutional LP Wallet" (5.0 SOL).
+- Click wallet menu -> "Sign Out" -> Connect "Institutional LP Wallet" (~5.0 SOL).
 - Navigate to "Liquidity Desk" or "Amatya Vaults" (/vaults).
 - Enter 5,000 USDC -> Select Senior Tranche -> Click "Authorize & Allocate Capital".
 - Observe: Real Devnet transaction confirmed, Pool TVL immediately updates!
 
 Step 4: Connect as Regulatory Auditor
 - Switch role to "Compliance Auditor" -> Navigate to "ZK Explorer" (/verification).
+- Observe live softcoded balances fetched directly from Solana Devnet RPC for all
+  three counterparty accounts.
 - Inspect the live verified proof, nullifier hash, and cryptographic inputs.
 
 
