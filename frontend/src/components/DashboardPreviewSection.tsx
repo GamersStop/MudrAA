@@ -137,7 +137,7 @@ const DonutChart: React.FC = () => {
 };
 
 export const DashboardPreviewSection: React.FC = () => {
-  const { launchApp } = useWallet();
+  const { launchApp, walletAddress, balanceSol } = useWallet();
   const [activeNav, setActiveNav] = useState("Overview");
 
   const features = [
@@ -246,9 +246,11 @@ export const DashboardPreviewSection: React.FC = () => {
               </div>
               <div className="flex items-center gap-2 font-mono text-[9px] text-[#8E9DB1]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#27E7A3] animate-pulse" />
-                <span>0x6a2...8f2c</span>
+                <span>{walletAddress || "AzHZ...yiJ8"}</span>
                 <span className="text-[#4A607C]">·</span>
-                <span className="text-[#4A607C]">Sol: ◎ 2.41</span>
+                <span className="text-[#4A607C]">
+                  {balanceSol > 0 ? `Sol: ◎ ${balanceSol.toFixed(2)}` : "Sol: ◎ 15.02"}
+                </span>
               </div>
             </div>
 

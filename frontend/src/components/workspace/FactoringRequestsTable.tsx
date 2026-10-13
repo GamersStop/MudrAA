@@ -31,6 +31,7 @@ export interface FactoringRequest {
   timestamp: string;
   txHash?: string;
   currency?: "SOL" | "USDC";
+  isSimulated?: boolean;
 }
 
 interface FactoringRequestsTableProps {
@@ -301,15 +302,33 @@ export const FactoringRequestsTable: React.FC<FactoringRequestsTableProps> = ({
               {selectedReceipt.txHash && (
                 <div className="pt-2 border-t border-slate-800/80 flex justify-between items-center">
                   <span className="text-slate-400">Solana Devnet:</span>
-                  <a
-                    href={`https://explorer.solana.com/tx/${selectedReceipt.txHash}?cluster=devnet`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[#00F2FE] hover:underline flex items-center gap-1 font-bold text-[11px]"
-                  >
-                    <span>{selectedReceipt.txHash.slice(0, 8)}...{selectedReceipt.txHash.slice(-6)}</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+                  {selectedReceipt.isSimulated ||
+                  selectedReceipt.txHash.startsWith("sim-") ||
+                  selectedReceipt.txHash.startsWith("sig-") ||
+                  selectedReceipt.txHash.startsWith("dev-") ||
+                  selectedReceipt.txHash.startsWith("5K") ||
+                  selectedReceipt.txHash.length < 80 ? (
+                    <span
+                      className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-semibold flex items-center gap-1.5"
+                      title="Simulated attestation (Demo Mode). Connect Phantom on Devnet or configure DEMO_RELAYER_PRIVATE_KEY for live on-chain Explorer broadcast."
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                      Simulated (Demo Mode)
+                    </span>
+                  ) : (
+                    <a
+                      href={`https://explorer.solana.com/tx/${selectedReceipt.txHash}?cluster=devnet`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#00F2FE] hover:underline flex items-center gap-1 font-bold text-[11px]"
+                    >
+                      <span>
+                        {selectedReceipt.txHash.slice(0, 8)}...
+                        {selectedReceipt.txHash.slice(-6)}
+                      </span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
                 </div>
               )}
             </div>

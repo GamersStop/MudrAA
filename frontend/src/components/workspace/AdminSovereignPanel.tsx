@@ -18,11 +18,7 @@ export const AdminSovereignPanel: React.FC = () => {
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [feeBps, setFeeBps] = useState<number>(25);
   const [kybWalletInput, setKybWalletInput] = useState<string>("");
-  const [kybEntities, setKybEntities] = useState<Array<{ wallet: string; tier: number; status: "Verified" | "Sanctioned" }>>([
-    { wallet: "EXP-IND-MH-01 (Nhava Sheva Exporters Corp)", tier: 2, status: "Verified" },
-    { wallet: "IMP-EUR-HH-09 (Vanderbilt Logistics AG)", tier: 2, status: "Verified" },
-    { wallet: "OFAC-SANCTIONED-0x99281 (Blacklisted Corridor)", tier: 0, status: "Sanctioned" },
-  ]);
+  const [kybEntities, setKybEntities] = useState<Array<{ wallet: string; tier: number; status: "Verified" | "Sanctioned" }>>([]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,6 +26,10 @@ export const AdminSovereignPanel: React.FC = () => {
       const stored = localStorage.getItem("mudraa_protocol_paused");
       if (stored !== null) {
         setIsPaused(stored === "true");
+      }
+      const storedKyb = localStorage.getItem("mudraa_kyb_entities");
+      if (storedKyb) {
+        setKybEntities(JSON.parse(storedKyb));
       }
     } catch {
       // safe fallback
@@ -53,10 +53,14 @@ export const AdminSovereignPanel: React.FC = () => {
   const handleAddKyb = (e: React.FormEvent) => {
     e.preventDefault();
     if (!kybWalletInput.trim()) return;
-    setKybEntities((prev) => [
-      { wallet: kybWalletInput.trim(), tier: 2, status: "Verified" },
-      ...prev,
-    ]);
+    const updated = [
+      { wallet: kybWalletInput.trim(), tier: 2, status: "Verified" as const },
+      ...kybEntities,
+    ];
+    setKybEntities(updated);
+    try {
+      localStorage.setItem("mudraa_kyb_entities", JSON.stringify(updated));
+    } catch {}
     setKybWalletInput("");
     setStatusMessage("✓ Panditrao Compliance: New KYB verified entity registered to on-chain PDA.");
     setTimeout(() => setStatusMessage(null), 3500);

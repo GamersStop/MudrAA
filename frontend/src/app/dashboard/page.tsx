@@ -15,7 +15,7 @@ import { useWallet } from "@/context/WalletContext";
 export default function DashboardPage() {
   const { userRole } = useWallet();
   const [activeTab, setActiveTab] = useState<
-    "overview" | "exporter" | "liquidity" | "factoring" | "verification" | "secondary" | "admin"
+    "overview" | "exporter" | "liquidity" | "factoring" | "verification" | "secondary" | "admin" | "vaults"
   >("overview");
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 

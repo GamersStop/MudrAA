@@ -26,6 +26,7 @@ interface WalletOption {
 export const WalletModal: React.FC = () => {
   const { isModalOpen, closeWalletModal, connectWallet, connecting, isTestMode } = useWallet();
   const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isModalOpen) return null;
 
@@ -34,12 +35,28 @@ export const WalletModal: React.FC = () => {
     ...(isTestMode
       ? [
           {
-            id: "judge_demo",
-            name: "Judge Evaluation Wallet",
-            iconBg: "bg-gradient-to-br from-amber-500 to-amber-600",
-            tag: "Test Mode",
+            id: "factory_exporter_wallet",
+            name: "Factory & Exporter Wallet",
+            iconBg: "bg-gradient-to-br from-emerald-500 to-teal-600",
+            tag: "Exporter • 3.0 SOL",
             isJudgeDemo: true,
-            description: "Pre-authorized test account configured in .env for seamless evaluation",
+            description: "Used by Global Exporters to register Peppol invoices & receive factoring advances (4215yZFm...)",
+          },
+          {
+            id: "institutional_lp_wallet",
+            name: "Institutional LP Wallet",
+            iconBg: "bg-gradient-to-br from-cyan-500 to-blue-600",
+            tag: "Lender (LP) • 5.0 SOL",
+            isJudgeDemo: true,
+            description: "Used by Institutional Lenders to fund liquidity pools & underwriting vaults (C3CBRnk4...)",
+          },
+          {
+            id: "admin_approver_wallet",
+            name: "Admin & Approver Wallet",
+            iconBg: "bg-gradient-to-br from-amber-500 to-amber-600",
+            tag: "Admin & Citadel • 12.0 SOL",
+            isJudgeDemo: true,
+            description: "Used by Peshawa Sovereign Admin & ZK Approver to verify proofs and govern vaults (AzHZTAXa...)",
           },
         ]
       : []),
@@ -68,7 +85,13 @@ export const WalletModal: React.FC = () => {
 
   const handleSelect = async (wallet: WalletOption) => {
     setSelectedWalletId(wallet.id);
-    await connectWallet(wallet.name);
+    setErrorMessage(null);
+    try {
+      await connectWallet(wallet.name);
+    } catch (err: any) {
+      console.warn("Wallet connect error:", err);
+      setErrorMessage(err?.message || "Failed to connect to wallet.");
+    }
   };
 
   return (
@@ -106,6 +129,13 @@ export const WalletModal: React.FC = () => {
             </p>
           </div>
         </div>
+
+        {/* Error Banner */}
+        {errorMessage && (
+          <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/40 text-xs font-mono text-rose-300">
+            {errorMessage}
+          </div>
+        )}
 
         {/* Connecting Banner */}
         {connecting && (

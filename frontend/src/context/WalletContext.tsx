@@ -39,7 +39,12 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 // Configuration loaded strictly from environment variables
 const SOLANA_DEVNET_RPC = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com";
 const IS_TEST_MODE = process.env.NEXT_PUBLIC_TEST_MODE === "true";
-const ENV_DEMO_WALLET_ADDRESS = process.env.NEXT_PUBLIC_DEMO_WALLET_ADDRESS || "";
+const ENV_DEMO_WALLET_ADDRESS =
+  process.env.NEXT_PUBLIC_DEMO_WALLET_ADDRESS || "AzHZTAXadh8vBmT9SUQrqq1bKsMUjQaXacArWZZnyiJ8";
+const ENV_LP_WALLET_ADDRESS =
+  process.env.NEXT_PUBLIC_LP_WALLET_ADDRESS || "C3CBRnk4xg9up53McWMNSYFMAYrUctGm2eWdvM4gipvP";
+const ENV_EXPORTER_WALLET_ADDRESS =
+  process.env.NEXT_PUBLIC_EXPORTER_WALLET_ADDRESS || "4215yZFmakPLePKXqYVqcBmVJHMK6SLfmJGW8h3UgQfG";
 
 export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const router = useRouter();
@@ -59,6 +64,25 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [targetRoute, setTargetRoute] = useState<string | null>(null);
 
+  const getPersonaWallet = useCallback((role: UserRole) => {
+    if (role === "exporter") {
+      return {
+        address: ENV_EXPORTER_WALLET_ADDRESS,
+        name: "Factory & Exporter Wallet",
+      };
+    }
+    if (role === "lender") {
+      return {
+        address: ENV_LP_WALLET_ADDRESS,
+        name: "Institutional LP Wallet",
+      };
+    }
+    return {
+      address: ENV_DEMO_WALLET_ADDRESS,
+      name: role === "admin" ? "Peshawa Sovereign Admin Wallet" : "Compliance Auditor Wallet",
+    };
+  }, []);
+
   const setUserRole = (role: UserRole) => {
     setUserRoleState(role);
     try {
@@ -66,6 +90,26 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       window.dispatchEvent(new Event("mudraa_role_changed"));
     } catch {
       // safe fallback
+    }
+
+    // If using demo wallet, dynamically switch persona wallet address & balance
+    if (isDemoWallet && IS_TEST_MODE) {
+      const persona = getPersonaWallet(role);
+      setFullAddress(persona.address);
+      setWalletAddress(`${persona.address.slice(0, 4)}...${persona.address.slice(-4)}`);
+      setWalletName(persona.name);
+      try {
+        localStorage.setItem(
+          "mudraa_wallet_session",
+          JSON.stringify({
+            connected: true,
+            address: persona.address,
+            walletName: persona.name,
+            isDemo: true,
+          })
+        );
+      } catch {}
+      fetchLiveDevnetState(persona.address);
     }
   };
 
@@ -84,13 +128,13 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       // safe fallback
     }
 
-    // Auto-connect demo evaluation wallet ONLY if user does not already have a custom dev wallet connected
-    if (!connected && IS_TEST_MODE && ENV_DEMO_WALLET_ADDRESS) {
-      const demoAddr = ENV_DEMO_WALLET_ADDRESS;
+    // Auto-connect appropriate role evaluation wallet if no custom extension wallet connected
+    if ((!connected || isDemoWallet) && IS_TEST_MODE) {
+      const persona = getPersonaWallet(role);
       setConnected(true);
-      setFullAddress(demoAddr);
-      setWalletAddress(`${demoAddr.slice(0, 4)}...${demoAddr.slice(-4)}`);
-      setWalletName("Demo Evaluation Wallet");
+      setFullAddress(persona.address);
+      setWalletAddress(`${persona.address.slice(0, 4)}...${persona.address.slice(-4)}`);
+      setWalletName(persona.name);
       setIsDemoWallet(true);
 
       try {
@@ -98,14 +142,14 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           "mudraa_wallet_session",
           JSON.stringify({
             connected: true,
-            address: demoAddr,
-            walletName: "Demo Evaluation Wallet",
+            address: persona.address,
+            walletName: persona.name,
             isDemo: true,
           })
         );
       } catch {}
 
-      fetchLiveDevnetState(demoAddr);
+      fetchLiveDevnetState(persona.address);
     }
 
     router.push("/dashboard");
@@ -176,11 +220,14 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   // Initialize: Check stored role, session storage, or conditionally auto-connect if TEST_MODE is enabled in env
   useEffect(() => {
     try {
-      // Clear all unverified transactions up to date so session reflects 0 unproven records
-      if (typeof window !== "undefined" && !localStorage.getItem("mudraa_tx_purged_devnet_v1")) {
+      // Purge all unverified legacy mock transactions and test data
+      if (typeof window !== "undefined" && !localStorage.getItem("mudraa_clean_session_v3")) {
         localStorage.removeItem("mudraa_transactions");
-        localStorage.setItem("mudraa_tx_purged_devnet_v1", "true");
+        localStorage.removeItem("mudraa_proof_records");
+        localStorage.removeItem("mudraa_kyb_entities");
+        localStorage.setItem("mudraa_clean_session_v3", "true");
         window.dispatchEvent(new Event("mudraa_transactions_updated"));
+        window.dispatchEvent(new Event("mudraa_proofs_updated"));
       }
 
       // Check if user has already confirmed their demo role
@@ -234,15 +281,28 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       // Real Phantom Wallet Connection
       if (selectedWallet === "Phantom") {
-        if (typeof window !== "undefined" && (window as any).solana?.isPhantom) {
+        const getPhantom = () => {
+          if (typeof window === "undefined") return null;
+          if ((window as any).phantom?.solana?.isPhantom) {
+            return (window as any).phantom.solana;
+          }
+          if ((window as any).solana?.isPhantom) {
+            return (window as any).solana;
+          }
+          return null;
+        };
+
+        const phantomProvider = getPhantom();
+
+        if (phantomProvider) {
           try {
-            const resp = await (window as any).solana.connect();
+            const resp = await phantomProvider.connect();
             if (resp?.publicKey) {
               resolvedAddress = resp.publicKey.toString();
             }
-          } catch (err) {
+          } catch (err: any) {
             console.warn("Phantom connection prompt dismissed:", err);
-            throw new Error("Phantom connection was canceled.");
+            throw new Error(err?.message || "Phantom connection was canceled.");
           }
         } else {
           if (typeof window !== "undefined") {
@@ -284,11 +344,60 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           throw new Error("Backpack wallet extension not detected.");
         }
       } else if (
-        selectedWallet === "Judge Evaluation Wallet" ||
-        selectedWallet === "Demo Evaluation Wallet"
+        selectedWallet === "Admin & Approver Wallet" ||
+        selectedWallet === "Admin & Explorer Wallet" ||
+        selectedWallet === "Admin & Exporter Wallet"
       ) {
         if (IS_TEST_MODE && ENV_DEMO_WALLET_ADDRESS) {
           resolvedAddress = ENV_DEMO_WALLET_ADDRESS;
+          isDemo = true;
+          setUserRoleState("admin");
+          try {
+            localStorage.setItem("mudraa_user_role", "admin");
+            window.dispatchEvent(new Event("mudraa_role_changed"));
+          } catch {}
+        } else {
+          throw new Error("Demo evaluation wallet address not configured in environment variables.");
+        }
+      } else if (
+        selectedWallet === "Institutional LP Wallet" ||
+        selectedWallet === "Lender & LP Wallet" ||
+        selectedWallet === "Factory & LP Wallet" ||
+        selectedWallet === "Factor & LP Wallet"
+      ) {
+        if (IS_TEST_MODE && ENV_LP_WALLET_ADDRESS) {
+          resolvedAddress = ENV_LP_WALLET_ADDRESS;
+          isDemo = true;
+          setUserRoleState("lender");
+          try {
+            localStorage.setItem("mudraa_user_role", "lender");
+            window.dispatchEvent(new Event("mudraa_role_changed"));
+          } catch {}
+        } else {
+          throw new Error("LP evaluation wallet address not configured in environment variables.");
+        }
+      } else if (
+        selectedWallet === "Factory & Exporter Wallet" ||
+        selectedWallet === "Exporter Wallet"
+      ) {
+        if (IS_TEST_MODE && ENV_EXPORTER_WALLET_ADDRESS) {
+          resolvedAddress = ENV_EXPORTER_WALLET_ADDRESS;
+          isDemo = true;
+          setUserRoleState("exporter");
+          try {
+            localStorage.setItem("mudraa_user_role", "exporter");
+            window.dispatchEvent(new Event("mudraa_role_changed"));
+          } catch {}
+        } else {
+          throw new Error("Exporter evaluation wallet address not configured in environment variables.");
+        }
+      } else if (
+        selectedWallet === "Judge Evaluation Wallet" ||
+        selectedWallet === "Demo Evaluation Wallet"
+      ) {
+        if (IS_TEST_MODE) {
+          const persona = getPersonaWallet(userRole);
+          resolvedAddress = persona.address;
           isDemo = true;
         } else {
           throw new Error("Demo evaluation wallet address not configured in environment variables.");
@@ -343,6 +452,10 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     try {
       localStorage.removeItem("mudraa_wallet_session");
       localStorage.removeItem("mudraa_role_confirmed");
+      localStorage.removeItem("mudraa_transactions");
+      localStorage.removeItem("mudraa_proof_records");
+      window.dispatchEvent(new Event("mudraa_transactions_updated"));
+      window.dispatchEvent(new Event("mudraa_proofs_updated"));
     } catch {
       // Ignore storage error
     }

@@ -26,8 +26,8 @@ import {
 } from "lucide-react";
 
 interface WorkspaceHeaderProps {
-  activeTab?: "exporter" | "liquidity" | "overview" | "factoring" | "verification" | "secondary" | "admin";
-  onTabChange?: (tab: "exporter" | "liquidity" | "overview" | "factoring" | "verification" | "secondary" | "admin") => void;
+  activeTab?: "exporter" | "liquidity" | "overview" | "factoring" | "verification" | "secondary" | "admin" | "vaults";
+  onTabChange?: (tab: "exporter" | "liquidity" | "overview" | "factoring" | "verification" | "secondary" | "admin" | "vaults") => void;
 }
 
 export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
@@ -80,16 +80,17 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
     { id: "exporter", label: "Exporter Desk", href: "/exporter", icon: Ship },
     { id: "factoring", label: "Factoring", href: "/exporter/factoring", icon: Sparkles },
     { id: "liquidity", label: "Liquidity Desk", href: "/liquidity", icon: Building2 },
+    { id: "vaults", label: "Amatya Vaults", href: "/vaults", icon: Lock },
     { id: "verification", label: "ZK Explorer", href: "/verification", icon: Shield },
     { id: "secondary", label: "Secondary", href: "/secondary", icon: Activity },
   ];
 
   // RBAC Access Filter: Admin Citadel is strictly visible ONLY to sovereign Admin
   const allowedNavByRole: Record<UserRole, string[]> = {
-    admin: ["overview", "admin", "exporter", "factoring", "liquidity", "verification", "secondary"],
+    admin: ["overview", "admin", "exporter", "factoring", "liquidity", "vaults", "verification", "secondary"],
     exporter: ["overview", "exporter", "factoring"],
-    lender: ["overview", "liquidity", "secondary"],
-    auditor: ["overview", "verification"],
+    lender: ["overview", "liquidity", "vaults", "secondary"],
+    auditor: ["overview", "vaults", "verification"],
   };
 
   const visibleNavItems = allNavItems.filter((item) =>
@@ -178,7 +179,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             </div>
 
             {/* Role-Filtered Navigation Pills */}
-            <nav className="hidden xl:flex items-center gap-1.5 p-1 rounded-xl bg-[#101420] border border-slate-800">
+            <nav className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-[#101420] border border-slate-800">
               {visibleNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive =

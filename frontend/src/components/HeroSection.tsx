@@ -37,7 +37,7 @@ const OrbitalNode: React.FC<{
 };
 
 export const HeroSection: React.FC = () => {
-  const { launchApp } = useWallet();
+  const { launchApp, walletAddress } = useWallet();
   const [activeNode, setActiveNode] = useState<string>("Strategy");
 
   const orbitalNodes = [
@@ -175,7 +175,7 @@ export const HeroSection: React.FC = () => {
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#27E7A3]/8 border border-[#27E7A3]/20 text-[9px] font-mono text-[#27E7A3]">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#27E7A3] animate-pulse" />
-                  <span>0x6a2...8f2c</span>
+                  <span>{walletAddress || "AzHZ...yiJ8"}</span>
                 </div>
               </div>
             </div>

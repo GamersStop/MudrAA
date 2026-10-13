@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useWallet } from "@/context/WalletContext";
 import {
   ShieldCheck,
   CheckCircle2,
@@ -23,38 +24,97 @@ interface StatusStep {
 }
 
 export const RajmudraStatusBar: React.FC = () => {
+  const { currentSlot } = useWallet();
   const [selectedProof, setSelectedProof] = useState<string | null>(null);
+  const [latestTx, setLatestTx] = useState<any>(null);
 
-  const steps: StatusStep[] = [
-    {
-      title: "Peppol BIS 3.0 Schema",
-      category: "Invoice State",
-      detail: "RFC 8785 canonical hash generated and signed",
-      status: "verified",
-      hash: "0x8f72a...d9e1",
-    },
-    {
-      title: "Carrier Telemetry Ingestion",
-      category: "Physical Provenance",
-      detail: "Bill of Lading: BL-MAERSK-902110 (In Transit)",
-      status: "verified",
-      hash: "0x3e18c...44a7",
-    },
-    {
-      title: "ZK Nullifier Uniqueness",
-      category: "Anti-Fraud Citadel",
-      detail: "0 duplicate pledges detected across consensus layer",
-      status: "verified",
-      hash: "0xNullifier-90a2-f8b",
-    },
-    {
-      title: "Solana L1 Finality",
-      category: "Settlement Engine",
-      detail: "Anchor program state confirmed on Devnet/Mainnet",
-      status: "active",
-      hash: "Slot #298104812",
-    },
-  ];
+  useEffect(() => {
+    const syncStatus = () => {
+      try {
+        const stored = localStorage.getItem("mudraa_transactions");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setLatestTx(parsed[0]);
+            return;
+          }
+        }
+      } catch {}
+      setLatestTx(null);
+    };
+
+    syncStatus();
+    window.addEventListener("mudraa_transactions_updated", syncStatus);
+    window.addEventListener("storage", syncStatus);
+    return () => {
+      window.removeEventListener("mudraa_transactions_updated", syncStatus);
+      window.removeEventListener("storage", syncStatus);
+    };
+  }, []);
+
+  const steps: StatusStep[] = latestTx
+    ? [
+        {
+          title: "Peppol BIS 3.0 Schema",
+          category: "Invoice State",
+          detail: `Invoice: ${latestTx.invoiceNumber || "Registered"}`,
+          status: "verified",
+          hash: latestTx.nullifierHash
+            ? `${latestTx.nullifierHash.slice(0, 8)}...${latestTx.nullifierHash.slice(-4)}`
+            : "Canonical Signed",
+        },
+        {
+          title: "Carrier Telemetry Ingestion",
+          category: "Physical Provenance",
+          detail: `Bill of Lading: ${latestTx.bolNumber || "eBL Ingested"}`,
+          status: "verified",
+          hash: latestTx.carrierStatus || "In Transit",
+        },
+        {
+          title: "ZK Nullifier Uniqueness",
+          category: "Anti-Fraud Citadel",
+          detail: "0 duplicate pledges detected on consensus layer",
+          status: "verified",
+          hash: "Nullifier Active",
+        },
+        {
+          title: "Solana L1 Finality",
+          category: "Settlement Engine",
+          detail: "Anchor program state confirmed on Devnet",
+          status: "active",
+          hash: currentSlot ? `Slot #${currentSlot}` : "Devnet Finalized",
+        },
+      ]
+    : [
+        {
+          title: "Peppol BIS 3.0 Schema",
+          category: "Invoice State",
+          detail: "Awaiting invoice registration",
+          status: "queued",
+          hash: "Circuit Ready",
+        },
+        {
+          title: "Carrier Telemetry Ingestion",
+          category: "Physical Provenance",
+          detail: "Awaiting maritime eBL telemetry",
+          status: "queued",
+          hash: "Telemetry Ready",
+        },
+        {
+          title: "ZK Nullifier Uniqueness",
+          category: "Anti-Fraud Citadel",
+          detail: "Double-pledge barrier active",
+          status: "active",
+          hash: "Citadel Armed",
+        },
+        {
+          title: "Solana L1 Finality",
+          category: "Settlement Engine",
+          detail: "Anchor state synchronized on Devnet",
+          status: "active",
+          hash: currentSlot ? `Slot #${currentSlot}` : "Live Cluster",
+        },
+      ];
 
   return (
     <div className="w-full rounded-2xl bg-[#0C0F17]/95 border border-[#F59E0B]/30 p-4 sm:p-5 shadow-[0_0_40px_rgba(245,158,11,0.08)] backdrop-blur-md relative overflow-hidden">

@@ -95,22 +95,35 @@ MudrAA coordinates its execution, security, and capital lifecycle across eight s
 
 ## 🧭 Judge Evaluation Quickstart Guide
 
-MudrAA includes a built-in **Judge Evaluation Mode** with a pre-configured test account for instant, zero-friction evaluation.
+MudrAA includes a built-in **Multi-Wallet Evaluation Architecture** with three pre-funded Solana Devnet accounts for instant, zero-friction testing of live on-chain debit and credit settlements.
 
-### Option A: Instant 1-Click Judge Evaluation
-1. Launch the web portal at [http://localhost:3000](http://localhost:3000).
-2. Click **"Launch App"** or **"Connect Wallet"**.
-3. Choose **"⚡ Judge Evaluation Wallet"** (pre-authorized Solana test account).
-4. Select any persona from the **Role Selector**:
-   - **Admin (Peshawa)**: Inspect protocol circuit breakers, Panditrao KYB whitelists, and live system health.
-   - **Exporter**: Submit an invoice, run client-side ZK verification, and draw liquidity advances.
-   - **Institutional Lender**: Inspect Senior/Junior vault yields, deposit USDC, or trade secondary debt notes.
-   - **Auditor**: Inspect on-chain nullifier hashes, Groth16 proof pairing, and Token-2022 transfer logs.
+### The 3 Dedicated Devnet Counterparty Wallets
 
-### Option B: Real Solana Devnet Wallet
-1. Open the app and connect your personal **Phantom** or **Solflare** wallet.
-2. Ensure your wallet network is set to **Solana Devnet**.
-3. Test any workspace desk with live on-chain Devnet state, balances, and slots.
+| Persona / Entity | Solana Devnet Address | Balance | Role in Settlement Flow |
+|---|---|---|---|
+| **Factory & Exporter** | `4215yZFmakPLePKXqYVqcBmVJHMK6SLfmJGW8h3UgQfG` | **~3.00 SOL** | **Credit (Beneficiary)**: Registers Peppol invoices & receives cash advances. |
+| **Institutional LP (Lender)** | `C3CBRnk4xg9up53McWMNSYFMAYrUctGm2eWdvM4gipvP` | **~5.00 SOL** | **Debit (Payer)**: Deploys liquidity into pools & funds factoring advances. |
+| **Admin Citadel & Approver** | `AzHZTAXadh8vBmT9SUQrqq1bKsMUjQaXacArWZZnyiJ8` | **~12.02 SOL** | **Protocol Custody**: Sovereign governor, emergency circuit breakers & ZK verifier. |
+
+### Live Debit & Credit Verification Runbook
+
+1. **Option A: Test Factory / Exporter Factoring (Cash Advance Drawdown)**:
+   - Launch the portal at [http://localhost:3000](http://localhost:3000).
+   - Click **"Connect Wallet"** &rarr; Select **"Factory & Exporter Wallet"** (`4215yZFm...`).
+   - Click **"Register Invoice"** (auto-fills canonical Peppol BIS 3.0 data or drop XML).
+   - Click **"Generate Rajmudra Proof & Submit"**.
+   - Observe client-side Groth16 witness generation and confirmation on Solana Devnet.
+   - Click **"View on Solana Explorer ↗"**: Inspect the on-chain transfer where **LP (`C3CBRnk4...`) is debited** and **Exporter (`4215yZFm...`) is credited**.
+
+2. **Option B: Test Institutional LP Capital Allocation (Underwriting Vaults)**:
+   - Click the wallet menu &rarr; **"Sign Out"** &rarr; Select **"Institutional LP Wallet"** (`C3CBRnk4...`).
+   - Navigate to **"Liquidity Desk"** or **"Amatya Vaults"** (`/vaults`).
+   - Enter `5,000 USDC` &rarr; Select Senior or Junior Tranche &rarr; Click **"Authorize & Allocate Capital"**.
+   - Watch the live transaction confirm on Devnet; Senior/Junior Pool TVL increments immediately.
+
+3. **Option C: Real Personal Wallet (Phantom / Solflare / Backpack)**:
+   - Connect your personal Solana wallet set to **Solana Devnet**.
+   - Test full non-custodial invoice submission and liquidity underwriting with your own keys.
 
 ---
 
